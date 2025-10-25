@@ -7,10 +7,10 @@
 /.solution/x64/*
 /.solution/x64
 
-/.solution/.vs/*
-/.solution/.vs
-
 /.vs/*
 /.vs
+
+/*/.vs/*
+/*/.vs
 
 /.solution/Project2.vcxproj.user
