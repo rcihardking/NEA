@@ -1,0 +1,16 @@
+﻿/.solution/Project2/*
+/.solution/Project2
+
+/.solution/Debug/*
+/.solution/Debug
+
+/.solution/x64/*
+/.solution/x64
+
+/.solution/.vs/*
+/.solution/.vs
+
+/.vs/*
+/.vs
+
+/.solution/Project2.vcxproj.user
