@@ -1,0 +1,12 @@
+#version 420 core
+in vec3 outColour;
+in vec2 outTexCoord;
+
+out vec4 FragColor;
+
+uniform sampler2D image;
+  
+void main()
+{
+    FragColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+}
