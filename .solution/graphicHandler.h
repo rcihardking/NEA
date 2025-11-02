@@ -1,5 +1,7 @@
 #pragma once
 
+#include "maths.h"
+
 #include <glad/glad.h>
 #include <iostream>
 #include <string>
@@ -25,9 +27,12 @@ namespace graphics {
 
     class mesh {
     public:
-        mesh(const char* filepath);
+        graphicmath::matrix position;
+        float size;
+
+        mesh(const char* filepath, graphicmath::matrix pos, float scale);
         void remove();
-        void draw();
+        void draw(graphics::shader shader);
     private:
         std::vector<float> verticiesCoords;
         std::vector<float> normalCoords;

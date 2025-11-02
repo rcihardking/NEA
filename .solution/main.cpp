@@ -72,7 +72,7 @@ int main()
     }
 
     glfwSetErrorCallback(error_callback);
-    GLFWwindow *window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -84,12 +84,10 @@ int main()
     }
     glfwSetKeyCallback(window, keyCallback);
 
-    graphics::mesh newMesh("../meshes/monkey.obj");
+    graphics::mesh mesh1("../meshes/monkey.obj", graphicmath::vec3({  1.5f, 0.0f, -2.5f }), 1.0f);
+    graphics::mesh mesh2("../meshes/monkey.obj", graphicmath::vec3({ -1.5f, 0.0f, -2.5f }), 1.0f);
 
-    graphicmath::matrix rotation;
-    const graphicmath::matrix translation = graphicmath::matTranslation(graphicmath::vec3({ 0.0f, 0.0f, -2.5f }));
-    const graphicmath::matrix scale = graphicmath::matScale(1.0f);
-    const graphicmath::matrix proj = graphicmath::matPerspective(toRad(110.0f), 800.0f / 800.0f, 0.5f, 100.0f);
+    //graphicmath::matrix rotation;
 
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
@@ -105,30 +103,26 @@ int main()
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
     //glBindVertexArray(0);
 
-    GLuint loc0 = glGetUniformLocation(newShader.ID, "scale");
     GLuint loc1 = glGetUniformLocation(newShader.ID, "rotation");
-    GLuint loc2 = glGetUniformLocation(newShader.ID, "translation");
-    GLuint loc3 = glGetUniformLocation(newShader.ID, "proj");
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(newShader.ID);
-        glUniformMatrix4fv(loc0, 1, true, scale.array.data());
-        rotation = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), 2.0f * static_cast<float>( glfwGetTime() ));
-        glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
-        glUniformMatrix4fv(loc2, 1, true, translation.array.data());
-        glUniformMatrix4fv(loc3, 1, true, proj.array.data());
+        //glUseProgram(newShader.ID);
+        //rotation = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), 2.0f * static_cast<float>( glfwGetTime() ));
+        //glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
 
-        newMesh.draw();
+        mesh1.draw(newShader);
+        mesh2.draw(newShader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     //glDeleteTextures(1, &texture);
-    newMesh.remove();
+    mesh1.remove();
+    mesh2.remove();
     glDeleteProgram(newShader.ID);
 
     glfwTerminate();

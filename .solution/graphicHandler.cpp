@@ -64,6 +64,7 @@ static inline void objRegex(std::string line, std::regex reg, std::vector<float>
 
 
 void graphics::mesh::parseObj(const char* filepath) {
+
     std::ifstream obj(filepath);
     assert(obj.is_open());
 
@@ -117,7 +118,10 @@ void graphics::mesh::parseObj(const char* filepath) {
     }
 }
 
-graphics::mesh::mesh(const char* filepath) {
+graphics::mesh::mesh(const char* filepath, graphicmath::matrix pos, float scale) {
+    size = scale;
+    position = pos;
+
     parseObj(filepath); // can only handle objs so far
 
     glGenVertexArrays(1, &vao);
@@ -141,7 +145,23 @@ void graphics::mesh::remove() {
     glDeleteVertexArrays(1, &vao);
 }
 
-void graphics::mesh::draw() {
+void graphics::mesh::draw(graphics::shader shader) {
+    glUseProgram(shader.ID);
+
+    const graphicmath::matrix scale = graphicmath::matScale(size);
+    const graphicmath::matrix translation = graphicmath::matTranslation(position);
+    const graphicmath::matrix proj = graphicmath::matPerspective(toRad(110.0f), 800.0f / 800.0f, 0.5f, 100.0f);
+
+    GLuint loc0 = glGetUniformLocation(shader.ID, "scale");
+    GLuint loc1 = glGetUniformLocation(shader.ID, "rotation");
+    GLuint loc2 = glGetUniformLocation(shader.ID, "translation");
+    GLuint loc3 = glGetUniformLocation(shader.ID, "proj");
+
+    glUniformMatrix4fv(loc0, 1, true, scale.array.data());
+    glUniformMatrix4fv(loc1, 1, true, graphicmath::matIdentity().array.data());
+    glUniformMatrix4fv(loc2, 1, true, translation.array.data());
+    glUniformMatrix4fv(loc3, 1, true, proj.array.data());
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertIndex.size()), GL_UNSIGNED_INT, 0);
 }
