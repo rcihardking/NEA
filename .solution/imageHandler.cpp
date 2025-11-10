@@ -44,7 +44,7 @@ static unsigned char* loadPNG(FILE* image, int *pWidth, int *pHeight) {
 
 	png_bytep *row_pointers = png_get_rows(png_ptr, info_ptr);
 	size_t rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-	unsigned char *image_data = new unsigned char[height * rowbytes];
+	unsigned char* image_data = new unsigned char[height * rowbytes];
 	
 	for (unsigned int i = 0; i < height; i++) {
 		memcpy(image_data + i * rowbytes, row_pointers[i], rowbytes);
@@ -71,7 +71,7 @@ static GLuint innitTexture(unsigned char *image_data, int width, int height) {
 	delete[] image_data;
 	image_data = nullptr;
 	
-
+	glBindTexture(GL_TEXTURE_2D, 0);
 	return texture;
 }
 

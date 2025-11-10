@@ -84,12 +84,13 @@ int main()
     }
     glfwSetKeyCallback(window, keyCallback);
 
-    graphics::mesh mesh1("../meshes/monkey.obj", graphicmath::vec3({  1.5f, 0.0f, -2.5f }), 1.0f);
-    graphics::mesh mesh2("../meshes/monkey.obj", graphicmath::vec3({ -1.5f, 0.0f, -2.5f }), 1.0f);
-
-    //graphicmath::matrix rotation;
+    GLuint texture = createTexture("../textures/box.png"); // for some reason this causes errors with the new texture!
 
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    graphics::mesh mesh1(newShader.ID, "../meshes/monkey.obj", texture, graphicmath::vec3({  1.5f, 0.0f, -2.5f }), 1.0f);
+    graphics::mesh mesh2(newShader.ID, "../meshes/monkey.obj", texture, graphicmath::vec3({ -1.5f, 0.0f, -2.5f }), 1.0f);
+
+    //graphicmath::matrix rotation;
 
     //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     //glEnableVertexAttribArray(0);
@@ -113,8 +114,8 @@ int main()
         //rotation = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), 2.0f * static_cast<float>( glfwGetTime() ));
         //glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
 
-        mesh1.draw(newShader);
-        mesh2.draw(newShader);
+        mesh1.draw();
+        mesh2.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -65,6 +65,10 @@ static inline void objRegex(std::string line, std::regex reg, std::vector<float>
 
 void graphics::mesh::parseObj(const char* filepath) {
 
+    std::vector<float> vertexPos;
+    std::vector<float> vertexNor;
+    std::vector<float> vertexTex;
+
     std::ifstream obj(filepath);
     assert(obj.is_open());
 
@@ -77,17 +81,17 @@ void graphics::mesh::parseObj(const char* filepath) {
     for (std::string line; std::getline(obj, line); ) {
         switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
         case * "v" << sizeof(char) * 8 | *" ": // 30240
-            objRegex(line, v, &verticiesCoords, 3);
+            objRegex(line, v, &vertexPos, 3);
 
             break;
 
         case * "v" << sizeof(char) * 8 | *"n": // 30318
-            objRegex(line, vn, &normalCoords, 3);
+            objRegex(line, vn, &vertexNor, 3);
 
             break;
 
         case * "v" << sizeof(char) * 8 | *"t": // 30324
-            objRegex(line, vt, &textureCoords, 2);
+            objRegex(line, vt, &vertexTex, 2);
 
             break;
 
@@ -108,17 +112,28 @@ void graphics::mesh::parseObj(const char* filepath) {
                 std::smatch faceIndices;
                 std::regex_match(str_f[i], faceIndices, index);
 
-                vertIndex.push_back(std::stoi(faceIndices[1].str()) - 1);
-                textIndex.push_back(std::stoi(faceIndices[2].str()) - 1);
-                normIndex.push_back(std::stoi(faceIndices[3].str()) - 1);
+                // need to fix this
+                verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
+                verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
+                verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
+                
+                verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
+                verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
+                
+                verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
+                verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
+                verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
             }
 
             break;
         }
     }
+
 }
 
-graphics::mesh::mesh(const char* filepath, graphicmath::matrix pos, float scale) {
+graphics::mesh::mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, float scale) {
+    shader = shaderID;
+    texture = textureID;
     size = scale;
     position = pos;
 
@@ -129,14 +144,16 @@ graphics::mesh::mesh(const char* filepath, graphicmath::matrix pos, float scale)
 
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, verticiesCoords.size() * sizeof(float), verticiesCoords.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertIndex.size() * sizeof(int), vertIndex.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 }
 
 void graphics::mesh::remove() {
@@ -145,17 +162,18 @@ void graphics::mesh::remove() {
     glDeleteVertexArrays(1, &vao);
 }
 
-void graphics::mesh::draw(graphics::shader shader) {
-    glUseProgram(shader.ID);
+void graphics::mesh::draw() {
+    glUseProgram(shader);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     const graphicmath::matrix scale = graphicmath::matScale(size);
     const graphicmath::matrix translation = graphicmath::matTranslation(position);
     const graphicmath::matrix proj = graphicmath::matPerspective(toRad(110.0f), 800.0f / 800.0f, 0.5f, 100.0f);
 
-    GLuint loc0 = glGetUniformLocation(shader.ID, "scale");
-    GLuint loc1 = glGetUniformLocation(shader.ID, "rotation");
-    GLuint loc2 = glGetUniformLocation(shader.ID, "translation");
-    GLuint loc3 = glGetUniformLocation(shader.ID, "proj");
+    GLuint loc0 = glGetUniformLocation(shader, "scale");
+    GLuint loc1 = glGetUniformLocation(shader, "rotation");
+    GLuint loc2 = glGetUniformLocation(shader, "translation");
+    GLuint loc3 = glGetUniformLocation(shader, "proj");
 
     glUniformMatrix4fv(loc0, 1, true, scale.array.data());
     glUniformMatrix4fv(loc1, 1, true, graphicmath::matIdentity().array.data());
@@ -163,5 +181,7 @@ void graphics::mesh::draw(graphics::shader shader) {
     glUniformMatrix4fv(loc3, 1, true, proj.array.data());
 
     glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(vertIndex.size()), GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(verticies.size()));
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }

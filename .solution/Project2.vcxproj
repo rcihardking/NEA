@@ -129,12 +129,14 @@
     <ClCompile Include="graphicHandler.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\.lib\include</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="graphicMath.cpp" />
     <ClCompile Include="imageHandler.cpp" />
     <ClCompile Include="maths.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graphicHandler.h" />
+    <ClInclude Include="graphicMath.h" />
     <ClInclude Include="imageHandler.h" />
     <ClInclude Include="maths.h" />
   </ItemGroup>

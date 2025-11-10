@@ -1,12 +1,13 @@
 #version 420 core
-in vec3 outColour;
-in vec2 outTexCoord;
+in vec2 UV;
+in vec3 outNor;
 
-out vec4 FragColor;
+out vec3 FragColor;
 
 uniform sampler2D image;
   
 void main()
 {
-    FragColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+    //FragColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+    FragColor = texture(image, UV).rgb;
 }

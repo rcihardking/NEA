@@ -30,23 +30,22 @@ namespace graphics {
         graphicmath::matrix position;
         float size;
 
-        mesh(const char* filepath, graphicmath::matrix pos, float scale);
+        mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, float scale);
         void remove();
-        void draw(graphics::shader shader);
+        void draw();
     private:
-        std::vector<float> verticiesCoords;
-        std::vector<float> normalCoords;
-        std::vector<float> textureCoords;
+        std::vector<float> verticies;
+
         GLuint texture = 0;
 
-        std::vector<int> vertIndex;
-        std::vector<int> normIndex;
-        std::vector<int> textIndex;
         int polySize = 3;
 
         GLuint vbo;
+        
         GLuint vao;
         GLuint ebo;
+
+        GLuint shader;
 
         void parseObj(const char* filepath);
     };
