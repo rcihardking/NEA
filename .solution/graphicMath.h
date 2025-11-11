@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdarg.h>
 #include <assert.h>
+#include <tuple>
 
 namespace graphicsmath {
 	template <int h, int w>
@@ -15,7 +16,6 @@ namespace graphicsmath {
 			va_list args;
 			va_start(args, h * w);
 
-			int test;
 			for (int i = 0; i < h * w; ++i) {
 				array[i] = va_arg(args, int);
 			}
@@ -23,7 +23,7 @@ namespace graphicsmath {
 			va_end(args);
 		};
 
-		inline float* operator* (matrix mat) {
+		inline std::tuple<float*, int, int> operator* (matrix mat) {
 			if (w != mat.height) {
 				std::cout << "tried to multiply incompatible matricies";
 				assert(false);
@@ -39,7 +39,7 @@ namespace graphicsmath {
 				}
 			}
 
-			return newArray;
+			return std::make_tuple(newArray, h, mat.width)
 		};
 
 		float* array;
