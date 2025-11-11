@@ -131,10 +131,11 @@ void graphics::mesh::parseObj(const char* filepath) {
 
 }
 
-graphics::mesh::mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, float scale) {
+graphics::mesh::mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, graphicmath::matrix rotation, float scale) {
     shader = shaderID;
     texture = textureID;
     size = scale;
+    orientation = rotation;
     position = pos;
 
     parseObj(filepath); // can only handle objs so far
@@ -170,13 +171,19 @@ void graphics::mesh::draw() {
     const graphicmath::matrix translation = graphicmath::matTranslation(position);
     const graphicmath::matrix proj = graphicmath::matPerspective(toRad(110.0f), 800.0f / 800.0f, 0.5f, 100.0f);
 
+    graphicmath::matrix rotationX = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), orientation.array[0]);
+    graphicmath::matrix rotationY = graphicmath::matRotation(graphicmath::vec3({ 0.0f, 1.0f, 0.0f }), orientation.array[1]);
+    graphicmath::matrix rotationZ = graphicmath::matRotation(graphicmath::vec3({ 0.0f, 0.0f, 1.0f }), orientation.array[2]);
+
+    graphicmath::matrix rotation = rotationX * (rotationY * rotationZ);
+
     GLuint loc0 = glGetUniformLocation(shader, "scale");
     GLuint loc1 = glGetUniformLocation(shader, "rotation");
     GLuint loc2 = glGetUniformLocation(shader, "translation");
     GLuint loc3 = glGetUniformLocation(shader, "proj");
 
     glUniformMatrix4fv(loc0, 1, true, scale.array.data());
-    glUniformMatrix4fv(loc1, 1, true, graphicmath::matIdentity().array.data());
+    glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
     glUniformMatrix4fv(loc2, 1, true, translation.array.data());
     glUniformMatrix4fv(loc3, 1, true, proj.array.data());
 

@@ -11,6 +11,7 @@
 
 #include "imageHandler.h"
 #include "graphicHandler.h"
+#include "graphicMath.h"
 #include "maths.h"
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -71,6 +72,11 @@ int main()
         return -1;
     }
 
+    graphicsmath::matrix<2, 2> a = { 3, 2, 2, 2 };
+    graphicsmath::matrix<2, 2> b = { 4, 3, 3, 3 };
+
+    b*a;
+
     glfwSetErrorCallback(error_callback);
     GLFWwindow* window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
     if (!window) {
@@ -85,24 +91,22 @@ int main()
     glfwSetKeyCallback(window, keyCallback);
 
     GLuint texture = createTexture("../textures/box.png"); // for some reason this causes errors with the new texture!
-
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
-    graphics::mesh mesh1(newShader.ID, "../meshes/monkey.obj", texture, graphicmath::vec3({  1.5f, 0.0f, -2.5f }), 1.0f);
-    graphics::mesh mesh2(newShader.ID, "../meshes/monkey.obj", texture, graphicmath::vec3({ -1.5f, 0.0f, -2.5f }), 1.0f);
 
-    //graphicmath::matrix rotation;
-
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    //glEnableVertexAttribArray(0);
-
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    //glEnableVertexAttribArray(1);
-
-    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    //glEnableVertexAttribArray(2);
-
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
+    graphics::mesh mesh1(newShader.ID, 
+        "../meshes/monkey.obj", 
+        texture, 
+        graphicmath::vec3({  1.5f, 0.0f, -2.5f }), 
+        graphicmath::vec3({ 0.0f, 0.0f, 0.0f}),
+        1.0f
+    );
+    graphics::mesh mesh2(newShader.ID, 
+        "../meshes/monkey.obj", 
+        texture, 
+        graphicmath::vec3({ -1.5f, 0.0f, -2.5f }), 
+        graphicmath::vec3({ 0.0f, 0.0f, 0.0f}),
+        1.0f
+    );
 
     GLuint loc1 = glGetUniformLocation(newShader.ID, "rotation");
 
@@ -110,10 +114,7 @@ int main()
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //glUseProgram(newShader.ID);
-        //rotation = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), 2.0f * static_cast<float>( glfwGetTime() ));
-        //glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
-
+        mesh1.orientation = graphicmath::vec3({0.0f, (float)glfwGetTime(), 0.0f});
         mesh1.draw();
         mesh2.draw();
 
@@ -121,7 +122,7 @@ int main()
         glfwPollEvents();
     }
 
-    //glDeleteTextures(1, &texture);
+    glDeleteTextures(1, &texture);
     mesh1.remove();
     mesh2.remove();
     glDeleteProgram(newShader.ID);

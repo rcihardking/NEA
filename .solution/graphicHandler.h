@@ -28,9 +28,10 @@ namespace graphics {
     class mesh {
     public:
         graphicmath::matrix position;
+        graphicmath::matrix orientation;
         float size;
 
-        mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, float scale);
+        mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, graphicmath::matrix rotation, float scale);
         void remove();
         void draw();
     private:
