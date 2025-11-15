@@ -3,10 +3,6 @@
 #include <initializer_list>
 #include <cmath>
 
-typedef matrix<4, 4> mat4;
-typedef matrix<4, 1> vec4;
-typedef matrix<3, 1> vec3;
-
 template <int h, int w>
 struct matrix {
 	float array[h * w] = {};
@@ -42,6 +38,10 @@ struct matrix {
 		return newMatrix;
 	}
 };
+
+typedef matrix<4, 4> mat4;
+typedef matrix<4, 1> vec4;
+typedef matrix<3, 1> vec3;
 
 mat4 createEulerRotation(float x, float y, float z);
 mat4 createTranslation(float x, float y, float z);
