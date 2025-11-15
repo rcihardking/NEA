@@ -1,5 +1,6 @@
 #include "graphicHandler.h"
 
+
 GLuint graphics::shader::compileShader(const char* filePath, GLenum type) { // shaders must be zero terminated
     std::ifstream text(filePath);
     assert(text.is_open());
@@ -131,12 +132,15 @@ void graphics::mesh::parseObj(const char* filepath) {
 
 }
 
-graphics::mesh::mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, graphicmath::matrix rotation, float scale) {
+
+
+graphics::mesh::mesh(GLuint shaderID, const char* filepath, GLuint textureID, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scale) {
+    position = { posX, posY, posZ };
+    orientation = { rotX, rotY, rotZ };
+    factor = scale;
+    
     shader = shaderID;
     texture = textureID;
-    size = scale;
-    orientation = rotation;
-    position = pos;
 
     parseObj(filepath); // can only handle objs so far
 
@@ -167,25 +171,20 @@ void graphics::mesh::draw() {
     glUseProgram(shader);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    const graphicmath::matrix scale = graphicmath::matScale(size);
-    const graphicmath::matrix translation = graphicmath::matTranslation(position);
-    const graphicmath::matrix proj = graphicmath::matPerspective(toRad(110.0f), 800.0f / 800.0f, 0.5f, 100.0f);
-
-    graphicmath::matrix rotationX = graphicmath::matRotation(graphicmath::vec3({ 1.0f, 0.0f, 0.0f }), orientation.array[0]);
-    graphicmath::matrix rotationY = graphicmath::matRotation(graphicmath::vec3({ 0.0f, 1.0f, 0.0f }), orientation.array[1]);
-    graphicmath::matrix rotationZ = graphicmath::matRotation(graphicmath::vec3({ 0.0f, 0.0f, 1.0f }), orientation.array[2]);
-
-    graphicmath::matrix rotation = rotationX * (rotationY * rotationZ);
+    static matrix<4, 4> proj = createPerspective(70.0f, 800.0f / 800.0f, 0.0f, 50.0f);
+    matrix<4, 4> scale = createScale(factor);
+    matrix<4, 4> trans = createTranslation(position[0], position[1], position[2]);
+    matrix<4, 4> rotation = createEulerRotation(orientation[0], orientation[1], orientation[2]);
 
     GLuint loc0 = glGetUniformLocation(shader, "scale");
     GLuint loc1 = glGetUniformLocation(shader, "rotation");
     GLuint loc2 = glGetUniformLocation(shader, "translation");
     GLuint loc3 = glGetUniformLocation(shader, "proj");
 
-    glUniformMatrix4fv(loc0, 1, true, scale.array.data());
-    glUniformMatrix4fv(loc1, 1, true, rotation.array.data());
-    glUniformMatrix4fv(loc2, 1, true, translation.array.data());
-    glUniformMatrix4fv(loc3, 1, true, proj.array.data());
+    glUniformMatrix4fv(loc0, 1, true, scale.array);
+    glUniformMatrix4fv(loc1, 1, true, rotation.array);
+    glUniformMatrix4fv(loc2, 1, true, trans.array);
+    glUniformMatrix4fv(loc3, 1, true, proj.array);
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(verticies.size()));

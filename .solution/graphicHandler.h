@@ -1,6 +1,6 @@
 #pragma once
 
-#include "maths.h"
+#include "graphicMath.h"
 
 #include <glad/glad.h>
 #include <iostream>
@@ -9,7 +9,9 @@
 #include <sstream>
 #include <cassert>
 #include <vector>
+#include <array>
 #include <regex>
+
 
 
 namespace graphics {
@@ -27,11 +29,11 @@ namespace graphics {
 
     class mesh {
     public:
-        graphicmath::matrix position;
-        graphicmath::matrix orientation;
-        float size;
+        std::array<float, 3> position;
+        std::array<float, 3> orientation;
+        float factor;
 
-        mesh(GLuint shaderID, const char* filepath, GLuint textureID, graphicmath::matrix pos, graphicmath::matrix rotation, float scale);
+        mesh(GLuint shaderID, const char* filepath, GLuint textureID, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scale);
         void remove();
         void draw();
     private:

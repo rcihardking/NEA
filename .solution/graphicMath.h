@@ -1,50 +1,49 @@
 #pragma once
-#include <array>
-#include <initializer_list>
 #include <iostream>
-#include <stdarg.h>
-#include <assert.h>
-#include <tuple>
+#include <initializer_list>
+#include <cmath>
 
-namespace graphicsmath {
-	template <int h, int w>
-	class matrix {
-	public:
-		inline matrix(int a, ...) {
-			array = new float[h * w];
+typedef matrix<4, 4> mat4;
+typedef matrix<4, 1> vec4;
+typedef matrix<3, 1> vec3;
 
-			va_list args;
-			va_start(args, h * w);
+template <int h, int w>
+struct matrix {
+	float array[h * w] = {};
+	static constexpr int height = h;
+	static constexpr int width = w;
 
-			for (int i = 0; i < h * w; ++i) {
-				array[i] = va_arg(args, int);
-			}
+	inline matrix() {};
 
-			va_end(args);
-		};
+	inline matrix(std::initializer_list<float> init) {
+		if (init.size() <= h * w) {
+			std::move(init.begin(), init.end(), array);
+		}
+		else { // only here to stop buffer overflows
+			std::cout << "an initalizer list provided is larger than matrix size" << "\n";
+			std::move(init.begin(), init.begin() + h * w, array);
+		}
+	}
 
-		inline std::tuple<float*, int, int> operator* (matrix mat) {
-			if (w != mat.height) {
-				std::cout << "tried to multiply incompatible matricies";
-				assert(false);
-			}
-			
-			float* newArray = new float[h * mat.width];
-			
-			for (int k = 0; k < this->height; k++) {
-				for (int j = 0; j < this->width; j++) {
-					for (int i = 0; i < mat.width; i++) {
-						newArray[i + k * mat.width] += this->array[j + k * this->width] * mat.array[i + j * mat.width];
-					}
+	template<class T>
+	inline auto operator* (T other) {
+		static_assert(width == other.height);
+
+		matrix<h, other.width> newMatrix;
+
+		for (int k = 0; k < h; ++k) {
+			for (int j = 0; j < width; ++j) {
+				for (int i = 0; i < other.width; ++i) {
+					newMatrix.array[i + k * other.width] += array[j + k * width] * other.array[i + j * other.width];
 				}
 			}
+		}
 
-			return std::make_tuple(newArray, h, mat.width)
-		};
+		return newMatrix;
+	}
+};
 
-		float* array;
-
-		const int height = h;
-		const int width = w;
-	};
-}
+mat4 createEulerRotation(float x, float y, float z);
+mat4 createTranslation(float x, float y, float z);
+mat4 createScale(float factor);
+mat4 createPerspective(float fov, float aspect, float near, float far);
