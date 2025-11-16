@@ -7,17 +7,16 @@
 #include <regex>
 #include <cassert>
 
-//GLuint createTexture(const char *filePath);
-
 class image {
 public:
+	GLuint texture = 0;
+	int width = 0;
+	int height = 0;
+
 	image(std::string filepath);
 	~image();
 
-	GLuint createTexture();
-
-	int width = 0;
-	int height = 0;
+	void createTexture();
 private:
 	unsigned char* data = nullptr;
 

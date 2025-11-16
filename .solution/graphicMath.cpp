@@ -8,19 +8,51 @@ mat4 graphics::createEulerRotation(float x, float y, float z) {
 	float cosZ = cosf(z);
 	float sinZ = sinf(z);
 
-	matrix<4,4> rotX = { 
+	matrix<4, 4> rotX = {
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, cosX, -sinX, 0.0f,
 		0.0f, sinX, cosX, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
-	matrix<4,4> rotY = {
+	matrix<4, 4> rotY = {
 		cosY, 0.0f, sinY, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		-sinY, 0.0f, cosY, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
-	matrix<4,4> rotZ = {
+	matrix<4, 4> rotZ = {
+		cosZ, -sinZ, 0.0f, 0.0f,
+		sinZ, cosZ, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	return rotY * (rotX * rotZ);
+}
+mat4 graphics::createEulerRotation(float rot[3]) {
+	float x = rot[0];
+	float y = rot[1];
+	float z = rot[2];
+
+	float cosX = cosf(x);
+	float sinX = sinf(x);
+	float cosY = cosf(y);
+	float sinY = sinf(y);
+	float cosZ = cosf(z);
+	float sinZ = sinf(z);
+
+	matrix<4, 4> rotX = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, cosX, -sinX, 0.0f,
+		0.0f, sinX, cosX, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	matrix<4, 4> rotY = {
+		cosY, 0.0f, sinY, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		-sinY, 0.0f, cosY, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	matrix<4, 4> rotZ = {
 		cosZ, -sinZ, 0.0f, 0.0f,
 		sinZ, cosZ, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
@@ -45,7 +77,16 @@ mat4 graphics::createTranslation(float x, float y, float z) {
 		1.0f, 0.0f, 0.0f, x,
 		0.0f, 1.0f, 0.0f, y,
 		0.0f, 0.0f, 1.0f, z,
-		0.0f, 0.0f, 0.0f, 1
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	return trans;
+}
+mat4 graphics::createTranslation(float pos[3]) {
+	matrix<4, 4> trans = {
+		1.0f, 0.0f, 0.0f, pos[0],
+		0.0f, 1.0f, 0.0f, pos[1],
+		0.0f, 0.0f, 1.0f, pos[2],
+		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	return trans;
 }

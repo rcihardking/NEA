@@ -55,7 +55,10 @@ inline mat4 iden4() {
 
 namespace graphics {
 	mat4 createEulerRotation(float x, float y, float z);
+	mat4 createEulerRotation(float rot[3]);
 	mat4 createTranslation(float x, float y, float z);
-	mat4 createScale(float factor);
+	mat4 createTranslation(float pos[3]);
 	mat4 createPerspective(float fov, float aspect, float near, float far);
+	//mat4 createPerspective(std::initializer_list<float> args);
+	mat4 createScale(float factor);
 };

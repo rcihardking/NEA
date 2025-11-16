@@ -67,6 +67,7 @@ void error_callback(int error, const char* desc) {
 
 int main()
 {
+{
     if (!glfwInit()) {
         return -1;
     }
@@ -84,25 +85,25 @@ int main()
     }
     glfwSetKeyCallback(window, keyCallback);
 
-    image newImage("../textures/checkermap_resized.png");
-    GLuint texture = newImage.createTexture();
+    image newImage("../textures/box.png");
+    newImage.createTexture();
 
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
-        newShader.ID, 
-        "../meshes/monkey.obj", 
-        texture, 
-        1.5f, 0.0f, -6.5f, 
-        0.0f, 0.0f, 0.0f,
+        newShader.ID,
+        "../meshes/monkey.obj",
+        newImage.texture,
+        { 1.5f, 0.0f, -6.5f },
+        { 0.0f, 0.0f, 0.0f },
         1.0f
     );
     graphics::mesh mesh2(
-        newShader.ID, 
-        "../meshes/monkey.obj", 
-        texture, 
-        -1.5f, 0.0f, -6.5f, 
-        0.0f, 0.0f, 0.0f,
+        newShader.ID,
+        "../meshes/monkey.obj",
+        newImage.texture,
+        { -1.5f, 0.0f, -6.5f },
+        { 0.0f, 0.0f, 0.0f },
         1.0f
     );
 
@@ -117,13 +118,7 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
-    glDeleteTextures(1, &texture);
-    mesh1.remove();
-    mesh2.remove();
-    glDeleteProgram(newShader.ID);
-
     glfwTerminate();
-    
+}
     return 0;
 }

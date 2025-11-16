@@ -12,8 +12,7 @@
 #include <array>
 #include <regex>
 
-
-
+/*
 namespace graphics {
     class shader {
     public:
@@ -51,5 +50,51 @@ namespace graphics {
         GLuint shader;
 
         void parseObj(const char* filepath);
+    };
+}
+*/
+
+namespace graphics {
+    struct shader {
+        const GLuint ID = glCreateProgram();
+
+        shader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~shader();
+    };
+
+    class mesh {
+    public:
+        mesh(GLuint ID, std::string filepath, GLuint texture, std::initializer_list<float> pos, std::initializer_list<float> rot, float factor);
+        ~mesh();
+
+        void draw();
+
+        
+        //std::array<float, 3> position();
+        //void move(std::initializer_list<float> pos);
+        //std::array<float, 3> orientation();
+        //void rotate(std::initializer_list<float> rot);
+        //float size();
+        //void scale(float factor);
+        
+    private:
+        GLuint shaderID;
+        GLuint textureID;
+
+        GLuint vao;
+        std::vector<float> verticies;
+        GLuint vbo;
+
+        float position[3]; // change these variables to std::array
+        float orientation[3];
+        float size;
+
+        mat4 translation;
+        mat4 rotation;
+        mat4 scale;
+        
+        mat4 projection = createPerspective(70.0f, 1.0f, 0.0f, 50.0f); //temporary, need to move this elsewhere
+
+        int readObj(std::string filepath);
     };
 }

@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "imageHandler.h"
 
-int image::readPNG(std::string filepath) {
+int inline image::readPNG(std::string filepath) {
 	// checks to ensure file being read exists and is a png
 	FILE* file = fopen(filepath.c_str(), "rb");
 	if (!file) {
@@ -44,7 +44,7 @@ int image::readPNG(std::string filepath) {
 	// reading png and getting important data
 	png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
 	unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
-	int rowBytes = png_get_rowbytes(pngPtr, infoPtr);
+	int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
 	height = png_get_image_height(pngPtr, infoPtr);
 	width = png_get_image_width(pngPtr, infoPtr);
 
@@ -52,8 +52,7 @@ int image::readPNG(std::string filepath) {
 	
 	// moving data into heap buffer
 	for (int i = 0; i < height; ++i) {
-		std::move(rowPtrs[i], rowPtrs[i] + rowBytes, data + i * rowBytes);
-		//memmove(data + i * rowBytes, rowPtrs[i], rowBytes); not sure if c style move is better here
+		memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
 	}
 	
 	// cleanup
@@ -66,38 +65,37 @@ int image::readPNG(std::string filepath) {
 image::image(std::string filepath) {
 	static const std::regex type("([a-z]|[A-Z]|[0-9]|_|/|./|../)*.([a-z]*)");
 	std::smatch matchObj;
-	std::regex_match(filepath, matchObj, type);
+	std::regex_match(filepath, matchObj, type); // matchObj[2] will be the file extension
 
 	if (matchObj.size() < 2) {
-		std::cout << "malformed file path" << "\n";
-		return;
+		std::cout << "malformed file path\n";
+		assert(false);
 	}
 
 	if (matchObj[2] == "png") {
-		if (readPNG(filepath) != 0) {
-			std::cout << "failed to read image"; 
+		if (readPNG(filepath)) {
+			std::cout << "failed to read image\n"; 
 			// add some actual error handling stuff!
 			assert(false);
 		}
 	}
 	else {
-		std::cout << "unknown image format" << "\n";
+		std::cout << "unknown image format\n";
+		assert(false);
 	}
 }
 
-GLuint image::createTexture() {
-	if (data == nullptr) { // create texture called when image hasnt been loaded (shouldnt be possible anyways)
-		return 0;
+void image::createTexture() {
+	if (data == nullptr) {
+		return;
 	}
 	static const int maxSize = GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE; // this value should probably be taken with a grain of salt.
 	if (width * height > maxSize) {
 		std::cout << "texture has exceeded OpenGL max texture size\n";
 		delete[width * height] data;
 		data = nullptr;
-		return 0;
+		return;
 	}
-
-	GLuint texture;
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -106,13 +104,14 @@ GLuint image::createTexture() {
 
 	delete[width * height] data;
 	data = nullptr;
-
-	return texture;
 }
 
 image::~image() {
 	if (data != nullptr) { // just incase allocated memory is never destroyed
 		delete[width * height] data;
 		data = nullptr;
+	}
+	if (texture != 0) {
+		glDeleteTextures(1, &texture);
 	}
 }
