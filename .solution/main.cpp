@@ -111,7 +111,6 @@ int main()
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //mesh1.orientation = {0.0f, (float)glfwGetTime(), 0.0f};
         mesh1.draw();
         mesh2.draw();
 

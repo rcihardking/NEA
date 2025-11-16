@@ -93,7 +93,7 @@ namespace graphics {
         mat4 rotation;
         mat4 scale;
         
-        mat4 projection = createPerspective(70.0f, 1.0f, 0.0f, 50.0f); //temporary, need to move this elsewhere
+        mat4 projection = createPerspective(70.0f, 1.0f, 0.0f, 50.0f); //temporary, need to move this out of each mesh
 
         int readObj(std::string filepath);
     };
