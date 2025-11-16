@@ -84,8 +84,9 @@ int main()
     }
     glfwSetKeyCallback(window, keyCallback);
 
-    
-    GLuint texture = createTexture("../textures/box.png"); // for some reason this causes errors with the new texture!
+    image newImage("../textures/checkermap_resized.png");
+    GLuint texture = newImage.createTexture();
+
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(

@@ -1,6 +1,6 @@
 #include "graphicMath.h"
 
-matrix<4,4> createEulerRotation(float x, float y, float z) {
+mat4 graphics::createEulerRotation(float x, float y, float z) {
 	float cosX = cosf(x);
 	float sinX = sinf(x);
 	float cosY = cosf(y);
@@ -29,7 +29,7 @@ matrix<4,4> createEulerRotation(float x, float y, float z) {
 	return rotY * (rotX * rotZ);
 }
 
-matrix<4, 4> createPerspective(float fov, float aspect, float near, float far) {
+mat4 graphics::createPerspective(float fov, float aspect, float near, float far) {
 	float f = 1.0f / tanf(fov / 2.0f);
 	matrix<4, 4> persp = {
 		f / aspect, 0.0f, 0.0f, 0.0f,
@@ -40,7 +40,7 @@ matrix<4, 4> createPerspective(float fov, float aspect, float near, float far) {
 	return persp;
 }
 
-matrix<4, 4> createTranslation(float x, float y, float z) {
+mat4 graphics::createTranslation(float x, float y, float z) {
 	matrix<4, 4> trans = {
 		1.0f, 0.0f, 0.0f, x,
 		0.0f, 1.0f, 0.0f, y,
@@ -50,7 +50,7 @@ matrix<4, 4> createTranslation(float x, float y, float z) {
 	return trans;
 }
 
-matrix<4, 4> createScale(float factor) {
+mat4 graphics::createScale(float factor) {
 	matrix <4, 4> scale = {
 		factor, 0.0f, 0.0f, 0.0f,
 		0.0f, factor, 0.0f, 0.0f,

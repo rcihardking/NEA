@@ -6,14 +6,14 @@
 template <int h, int w>
 struct matrix {
 	float array[h * w] = {};
-	static constexpr int height = h;
+	static constexpr int height = h; // so other matrices can be created using width and height
 	static constexpr int width = w;
 
 	inline matrix() {};
 
 	inline matrix(std::initializer_list<float> init) {
 		if (init.size() <= h * w) {
-			std::move(init.begin(), init.end(), array);
+			std::move(init.begin(), init.end(), array); // dont know if this is undefined behaviour
 		}
 		else { // only here to stop buffer overflows
 			std::cout << "an initalizer list provided is larger than matrix size" << "\n";
@@ -43,7 +43,19 @@ typedef matrix<4, 4> mat4;
 typedef matrix<4, 1> vec4;
 typedef matrix<3, 1> vec3;
 
-mat4 createEulerRotation(float x, float y, float z);
-mat4 createTranslation(float x, float y, float z);
-mat4 createScale(float factor);
-mat4 createPerspective(float fov, float aspect, float near, float far);
+inline mat4 iden4() {
+	static mat4 newMatrix = { 
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	return newMatrix;
+};
+
+namespace graphics {
+	mat4 createEulerRotation(float x, float y, float z);
+	mat4 createTranslation(float x, float y, float z);
+	mat4 createScale(float factor);
+	mat4 createPerspective(float fov, float aspect, float near, float far);
+};

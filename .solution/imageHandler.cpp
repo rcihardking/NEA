@@ -1,97 +1,118 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "imageHandler.h"
 
-
-static unsigned char* loadPNG(FILE* image, int *pWidth, int *pHeight) {
-	// check if the supplied image file is actually a png
-	const unsigned char sigPNG[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
-	unsigned char buffer[8];
-	fread(buffer, 1, 8, image);
-
-	if (memcmp(sigPNG, buffer, 8)) {
-		fclose(image);
-		return NULL;
+int image::readPNG(std::string filepath) {
+	// checks to ensure file being read exists and is a png
+	FILE* file = fopen(filepath.c_str(), "rb");
+	if (!file) {
+		return 1;
 	}
-
-	// libpng setup
-	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr) {
-		fclose(image);
-		return NULL;
+	unsigned char header[8];
+	if (fread(header, 1, 8, file) != 8) {
+		return 2;
 	}
-
-	png_infop info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) {
-		png_destroy_read_struct(&png_ptr, NULL, NULL);
-		fclose(image);
-		return NULL;
-	}
-
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-		fclose(image);
-		return NULL;
+	static constexpr unsigned char pngSig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+	if (memcmp(header, pngSig, 8) != 0) {
+		return 3;
 	}
 	
-	png_init_io(png_ptr, image);
-	png_set_sig_bytes(png_ptr, 8);
-
-	// reading png file
-	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
-	unsigned int width, height;
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, NULL, NULL, NULL, NULL, NULL);
-
-	png_bytep *row_pointers = png_get_rows(png_ptr, info_ptr);
-	size_t rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-	unsigned char* image_data = new unsigned char[height * rowbytes];
-	
-	for (unsigned int i = 0; i < height; i++) {
-		memcpy(image_data + i * rowbytes, row_pointers[i], rowbytes);
+	// initialising libpng
+	png_structp pngPtr = png_create_read_struct(
+		PNG_LIBPNG_VER_STRING,
+		NULL,
+		NULL,
+		NULL
+	);
+	if (!pngPtr) {
+		fclose(file);
+		return 4;
 	}
+	png_infop infoPtr = png_create_info_struct(pngPtr);
+	if (!infoPtr) {
+		png_destroy_read_struct(&pngPtr, NULL, NULL);
+		fclose(file);
+		return 4;
+	}
+	if (setjmp(png_jmpbuf(pngPtr))) {
+		png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+		fclose(file);
+		return 5;
+	}
+	png_init_io(pngPtr, file);
+	png_set_sig_bytes(pngPtr, 8);
 
+	// reading png and getting important data
+	png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
+	unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
+	int rowBytes = png_get_rowbytes(pngPtr, infoPtr);
+	height = png_get_image_height(pngPtr, infoPtr);
+	width = png_get_image_width(pngPtr, infoPtr);
+
+	data = new unsigned char[rowBytes * height];
+	
+	// moving data into heap buffer
+	for (int i = 0; i < height; ++i) {
+		std::move(rowPtrs[i], rowPtrs[i] + rowBytes, data + i * rowBytes);
+		//memmove(data + i * rowBytes, rowPtrs[i], rowBytes); not sure if c style move is better here
+	}
+	
 	// cleanup
-	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-	fclose(image);
+	png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+	fclose(file);
 
-	*pWidth = width;
-	*pHeight = height;
-	return image_data;
+	return 0;
 }
 
-static GLuint innitTexture(unsigned char *image_data, int width, int height) {
+image::image(std::string filepath) {
+	static const std::regex type("([a-z]|[A-Z]|[0-9]|_|/|./|../)*.([a-z]*)");
+	std::smatch matchObj;
+	std::regex_match(filepath, matchObj, type);
+
+	if (matchObj.size() < 2) {
+		std::cout << "malformed file path" << "\n";
+		return;
+	}
+
+	if (matchObj[2] == "png") {
+		if (readPNG(filepath) != 0) {
+			std::cout << "failed to read image"; 
+			// add some actual error handling stuff!
+			assert(false);
+		}
+	}
+	else {
+		std::cout << "unknown image format" << "\n";
+	}
+}
+
+GLuint image::createTexture() {
+	if (data == nullptr) { // create texture called when image hasnt been loaded (shouldnt be possible anyways)
+		return 0;
+	}
+	static const int maxSize = GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE; // this value should probably be taken with a grain of salt.
+	if (width * height > maxSize) {
+		std::cout << "texture has exceeded OpenGL max texture size\n";
+		delete[width * height] data;
+		data = nullptr;
+		return 0;
+	}
 
 	GLuint texture;
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	delete[] image_data;
-	image_data = nullptr;
-	
-	glBindTexture(GL_TEXTURE_2D, 0);
+	delete[width * height] data;
+	data = nullptr;
+
 	return texture;
 }
 
-GLuint createTexture(const char *filePath) {
-	std::string sfilePath = filePath;
-	auto pos = sfilePath.find_last_of(".");
-	std::string ext = sfilePath.substr(pos + 1);
-
-	int width, height;
-	unsigned char* image_data;
-	FILE* file = fopen(filePath, "rb");
-
-	if (ext == "png") {
-		image_data = loadPNG(file, &width, &height);
-		return innitTexture(image_data, width, height);
+image::~image() {
+	if (data != nullptr) { // just incase allocated memory is never destroyed
+		delete[width * height] data;
+		data = nullptr;
 	}
-	else {
-		// unsupported file type
-		return NULL;
-	}
-
-
 }
