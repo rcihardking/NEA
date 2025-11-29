@@ -3,6 +3,9 @@
 #include <initializer_list>
 #include <cmath>
 
+#define PI 3.14159265359
+#define TORADFACTOR 0.01745329251
+
 template <int h, int w>
 struct matrix {
 	float array[h * w] = {};
@@ -62,3 +65,5 @@ namespace graphics {
 	//mat4 createPerspective(std::initializer_list<float> args);
 	mat4 createScale(float factor);
 };
+
+inline float toRad(float degrees) { return static_cast<float>(degrees * TORADFACTOR); }

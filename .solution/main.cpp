@@ -73,6 +73,9 @@ int main()
     }
 
     glfwSetErrorCallback(error_callback);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow* window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
     if (!window) {
         glfwTerminate();
@@ -84,7 +87,10 @@ int main()
         return -1;
     }
     glfwSetKeyCallback(window, keyCallback);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
+   // image newImage("../textures/checkermap_resized.png");
     image newImage("../textures/box.png");
     newImage.createTexture();
 
@@ -100,18 +106,19 @@ int main()
     );
     graphics::mesh mesh2(
         newShader.ID,
-        "../meshes/monkey.obj",
+        "../meshes/plane.obj",
         newImage.texture,
         { -1.5f, 0.0f, -6.5f },
-        { 0.0f, 0.0f, 0.0f },
+        { toRad(90.0f), 0.0f, 0.0f },
         1.0f
     );
 
     while (!glfwWindowShouldClose(window)) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         mesh1.draw();
+        mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
         mesh2.draw();
 
         glfwSwapBuffers(window);

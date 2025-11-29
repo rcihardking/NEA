@@ -93,11 +93,23 @@ int graphics::mesh::readObj(std::string filepath) { // this code is CRAP CRAP CR
 
             break;
 
-        case * "v" << sizeof(char) * 8 | *"t": // 30324
-            objRegex(line, vt, &vertexTex, 2);
+		case * "v" << sizeof(char) * 8 | *"t": // 30324
+			objRegex(line, vt, &vertexTex, 2);
+		/*
+		{
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, vt);
 
-            break;
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
 
+			for (int i = 0; i < 2; ++i) {
+				vertexTex.push_back(1.0f - std::stof(matchObj[i + 1].str()));
+			}
+		}
+		*/
+			break;
         case * "f" << sizeof(char) * 8 | *" ": // 26144
             std::smatch matchObj;
             std::regex_match(line, matchObj, f);
@@ -173,13 +185,13 @@ graphics::mesh::mesh(GLuint ID, std::string filepath, GLuint texture, std::initi
 
 	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
 	glEnableVertexAttribArray(0);
 	
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
 	glEnableVertexAttribArray(1);
 	
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
 	glEnableVertexAttribArray(2);
 }
 
@@ -206,4 +218,12 @@ void graphics::mesh::draw() {
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(verticies.size()));
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+void graphics::mesh::rotate(std::initializer_list<float> rot) {
+	if (rot.size() == 3) {
+		std::move(rot.begin(), rot.end(), orientation);
+		rotation = createEulerRotation(orientation);
+	}
 }

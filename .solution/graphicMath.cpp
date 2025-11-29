@@ -1,5 +1,6 @@
 #include "graphicMath.h"
 
+
 mat4 graphics::createEulerRotation(float x, float y, float z) {
 	float cosX = cosf(x);
 	float sinX = sinf(x);

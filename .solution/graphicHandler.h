@@ -70,22 +70,22 @@ namespace graphics {
         void draw();
 
         
-        //std::array<float, 3> position();
+        inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
         //void move(std::initializer_list<float> pos);
-        //std::array<float, 3> orientation();
-        //void rotate(std::initializer_list<float> rot);
-        //float size();
+        inline std::array<float, 3> getOrientation() { return *reinterpret_cast<std::array<float, 3>*>(orientation); }
+        void rotate(std::initializer_list<float> rot);
+        inline float getSize() { return size; }
         //void scale(float factor);
         
     private:
-        GLuint shaderID;
+        GLuint shaderID; // perhaps each scene should be given a shader?
         GLuint textureID;
 
         GLuint vao;
         std::vector<float> verticies;
         GLuint vbo;
 
-        float position[3]; // change these variables to std::array
+        float position[3];
         float orientation[3];
         float size;
 
@@ -93,7 +93,7 @@ namespace graphics {
         mat4 rotation;
         mat4 scale;
         
-        mat4 projection = createPerspective(70.0f, 1.0f, 0.0f, 50.0f); //temporary, need to move this out of each mesh
+        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 0.01f, 60.0f); //temporary, need to move this out of each mesh
 
         int readObj(std::string filepath);
     };
