@@ -67,7 +67,6 @@ void error_callback(int error, const char* desc) {
 
 int main()
 {
-{
     if (!glfwInit()) {
         return -1;
     }
@@ -87,31 +86,31 @@ int main()
         return -1;
     }
     glfwSetKeyCallback(window, keyCallback);
-    glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
 
-   // image newImage("../textures/checkermap_resized.png");
     image newImage("../textures/box.png");
     newImage.createTexture();
+
+    image newImage1("../textures/checkermap_resized.png");
+    newImage1.createTexture();
 
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
-        newShader.ID,
         "../meshes/monkey.obj",
-        newImage.texture,
-        { 1.5f, 0.0f, -6.5f },
-        { 0.0f, 0.0f, 0.0f },
-        1.0f
-    );
-    graphics::mesh mesh2(
         newShader.ID,
-        "../meshes/plane.obj",
-        newImage.texture,
-        { -1.5f, 0.0f, -6.5f },
-        { toRad(90.0f), 0.0f, 0.0f },
-        1.0f
+        newImage.texture
     );
+    mesh1.move({ 1.5f, 0.0f, -6.5f });
+   
+    graphics::mesh mesh2(
+        "../meshes/cube.obj",
+        newShader.ID, 
+        newImage.texture
+    );
+    mesh2.move({ -1.5f, 0.0f, -6.5f });
+    
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -120,11 +119,11 @@ int main()
         mesh1.draw();
         mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
         mesh2.draw();
+        mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     glfwTerminate();
-}
     return 0;
 }

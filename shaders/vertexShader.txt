@@ -6,6 +6,7 @@ layout (location = 2) in vec3 inNor;
 out vec2 UV;
 out vec3 normal;
 
+
 uniform mat4 scale;
 uniform mat4 rotation;
 uniform mat4 translation;
@@ -13,8 +14,7 @@ uniform mat4 proj;
 
 void main()
 {
-    //mat4 proj = mat4(1.0);
-    gl_Position = proj * translation * rotation * scale * vec4(inPos, 1.0);
-    UV = inTex;
-    normal = inNor;
+    gl_Position = proj * translation * rotation * vec4(inPos, 1.0);
+    UV = vec2(inTex.x, 1.0 - inTex.y);
+    //normal = inNor;
 }    

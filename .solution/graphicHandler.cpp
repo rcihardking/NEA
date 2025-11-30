@@ -75,9 +75,9 @@ int graphics::mesh::readObj(std::string filepath) { // this code is CRAP CRAP CR
 		return 1;
 	}
 
-    static const std::regex v("v (-?[0-1]+.[0-9]*) (-?[0-1]+.[0-9]*) (-?[0-1]+.[0-9]*)");
-    static const std::regex vn("vn (-?[0-1]+.[0-9]*) (-?[0-1]+.[0-9]*) (-?[0-1]+.[0-9]*)");
-    static const std::regex vt("vt (-?[0-1]+.[0-9]*) (-?[0-1]+.[0-9]*)");
+    static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+    static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+    static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
     static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
     static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
 
@@ -95,20 +95,8 @@ int graphics::mesh::readObj(std::string filepath) { // this code is CRAP CRAP CR
 
 		case * "v" << sizeof(char) * 8 | *"t": // 30324
 			objRegex(line, vt, &vertexTex, 2);
-		/*
-		{
-			std::smatch matchObj;
-			std::regex_match(line, matchObj, vt);
-
-			if (matchObj.size() < 2) {
-				assert(false);
-			}
-
-			for (int i = 0; i < 2; ++i) {
-				vertexTex.push_back(1.0f - std::stof(matchObj[i + 1].str()));
-			}
-		}
-		*/
+		
+		
 			break;
         case * "f" << sizeof(char) * 8 | *" ": // 26144
             std::smatch matchObj;
@@ -146,23 +134,12 @@ int graphics::mesh::readObj(std::string filepath) { // this code is CRAP CRAP CR
 	return 0;
 }
 
-graphics::mesh::mesh(GLuint ID, std::string filepath, GLuint texture, std::initializer_list<float> pos, std::initializer_list<float> rot, float factor) {
-	shaderID = ID;
-	textureID = texture;
-
+graphics::mesh::mesh(std::string filepath, GLuint shader, GLuint texture) : shaderID{ shader }, textureID{ texture } {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	
-	std::move(pos.begin(), pos.end(), position);
-	std::move(rot.begin(), rot.end(), orientation);
-	size = factor;
-
-	translation = createTranslation(position);
-	rotation = createEulerRotation(orientation);
-	scale = createScale(size);
 
 	static const std::regex type("([a-z]|[A-Z]|[0-9]|_|/|./|../)*.([a-z]*)");
 	std::smatch matchObj;
@@ -174,7 +151,7 @@ graphics::mesh::mesh(GLuint ID, std::string filepath, GLuint texture, std::initi
 	}
 	if (matchObj[2] == "obj") {
 		if (readObj(filepath)) {
-			std::cout << "an error occured\n";
+			std::cout << "file doesnt exist?\n";
 			assert(false);
 		}
 	}
@@ -187,10 +164,10 @@ graphics::mesh::mesh(GLuint ID, std::string filepath, GLuint texture, std::initi
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
 	glEnableVertexAttribArray(0);
-	
+
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
 	glEnableVertexAttribArray(1);
-	
+
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
 	glEnableVertexAttribArray(2);
 }
@@ -221,9 +198,21 @@ void graphics::mesh::draw() {
 }
 
 
-void graphics::mesh::rotate(std::initializer_list<float> rot) {
+void graphics::location::rotate(std::initializer_list<float> rot) {
 	if (rot.size() == 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = createEulerRotation(orientation);
 	}
+}
+
+void graphics::location::move(std::initializer_list<float> pos) {
+	if (pos.size() == 3) {
+		std::move(pos.begin(), pos.end(), position);
+		translation = createTranslation(position);
+	}
+}
+
+void graphics::location::resize(float factor) {
+	size = factor;
+	scale = createScale(factor);
 }

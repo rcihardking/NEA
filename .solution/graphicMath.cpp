@@ -67,7 +67,7 @@ mat4 graphics::createPerspective(float fov, float aspect, float near, float far)
 	matrix<4, 4> persp = {
 		f / aspect, 0.0f, 0.0f, 0.0f,
 		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, (far + near) / (far - near), (2 * far * near) / (far - near),
+		0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
 		0.0f, 0.0f, -1.0f, 0.0f
 	};
 	return persp;
