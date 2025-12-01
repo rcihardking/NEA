@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphicMath.h"
+#include "imageHandler.h"
 
 #include <glad/glad.h>
 #include <iostream>
@@ -88,6 +89,7 @@ namespace graphics {
         void draw();
         
     private:
+
         GLuint shaderID; // perhaps each scene should be given a shader?
         GLuint textureID;
 
@@ -100,16 +102,14 @@ namespace graphics {
         int readObj(std::string filepath);
     };
 
-    class instance {
-    private:
-        std::vector<instance*> children;
-        instance* parent;
-        int meshIndex;
-    };
-
-    class workspace {
+    class scene {
     private:
         std::vector<mesh*> meshes;
-        instance root;
+
+    public:
+        mat4 perspective = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
+        location camera;
+
+        scene();
     };
 }

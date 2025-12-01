@@ -9,6 +9,7 @@
 template <int h, int w>
 struct matrix {
 	float array[h * w] = {};
+	bool identity = false;
 	static constexpr int height = h; // so other matrices can be created using width and height
 	static constexpr int width = w;
 
@@ -27,6 +28,12 @@ struct matrix {
 	template<class T>
 	inline auto operator* (T other) {
 		static_assert(width == other.height);
+		if (identity == true) {
+			return other;
+		}
+		else if (other.identity == true) {
+			return *this;
+		}
 
 		matrix<h, other.width> newMatrix;
 
@@ -47,12 +54,8 @@ typedef matrix<4, 1> vec4;
 typedef matrix<3, 1> vec3;
 
 inline mat4 iden4() {
-	static mat4 newMatrix = { 
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
-	};
+	mat4 newMatrix;
+	newMatrix.identity = true;
 	return newMatrix;
 };
 
@@ -61,7 +64,7 @@ namespace graphics {
 	mat4 createEulerRotation(float rot[3]);
 	mat4 createTranslation(float x, float y, float z);
 	mat4 createTranslation(float pos[3]);
-	mat4 createPerspective(float fov, float aspect, float far, float near);
+	mat4 createPerspective(float fov, float aspect, float near, float far);
 	mat4 createScale(float factor);
 };
 
