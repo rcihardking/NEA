@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphicMath.h"
-#include "imageHandler.h"
 
 #include <glad/glad.h>
 #include <iostream>
@@ -13,47 +12,6 @@
 #include <array>
 #include <regex>
 
-/*
-namespace graphics {
-    class shader {
-    public:
-        GLuint ID;
-
-        shader(const char* vertFilepath, const char* fragFilepath);
-    private:
-        std::vector<GLuint> shaders;
-
-        GLuint compileShader(const char* filepath, GLenum type);
-        void cleanupShaders();
-    };
-
-    class mesh {
-    public:
-        std::array<float, 3> position;
-        std::array<float, 3> orientation;
-        float factor;
-
-        mesh(GLuint shaderID, const char* filepath, GLuint textureID, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scale);
-        void remove();
-        void draw();
-    private:
-        std::vector<float> verticies;
-
-        GLuint texture = 0;
-
-        int polySize = 3;
-
-        GLuint vbo;
-        
-        GLuint vao;
-        GLuint ebo;
-
-        GLuint shader;
-
-        void parseObj(const char* filepath);
-    };
-}
-*/
 
 namespace graphics {
     struct shader {
@@ -62,6 +20,23 @@ namespace graphics {
         shader(std::string vertexFilepath, std::string fragmentFilepath);
         ~shader();
     };
+
+    /*
+    struct texture {
+        GLuint ID;
+
+
+    };
+
+    struct mesh {
+        GLuint vao;
+        GLuint vbo;
+        int size;
+
+        mesh(std::string meshFilepath);
+        ~mesh();
+    };
+    */
 
     class location {
     protected:
@@ -75,13 +50,14 @@ namespace graphics {
     
     public:
         inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
-        void move(std::initializer_list<float> pos);
+        virtual void move(std::initializer_list<float> pos);
         inline std::array<float, 3> getOrientation() { return *reinterpret_cast<std::array<float, 3>*>(orientation); }
-        void rotate(std::initializer_list<float> rot);
+        virtual void rotate(std::initializer_list<float> rot);
         inline float getSize() { return size; }
-        void resize(float factor);
+        virtual void resize(float factor);
     };
 
+    
     class mesh : public location {
     public:
         mesh(std::string filepath, GLuint shaderID, GLuint textureID);
@@ -89,7 +65,6 @@ namespace graphics {
         void draw();
         
     private:
-
         GLuint shaderID; // perhaps each scene should be given a shader?
         GLuint textureID;
 
@@ -98,18 +73,34 @@ namespace graphics {
         std::vector<float> verticies;
         
         mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
+        mat4 transformation;
 
         int readObj(std::string filepath);
     };
-
-    class scene {
+    
+    /*
+    class instance : public location {
     private:
-        std::vector<mesh*> meshes;
-
+        instance* parent;
+        std::vector<instance*> children;
     public:
-        mat4 perspective = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
-        location camera;
+        mesh* meshPtr;
+        image* texturePtr;
+        shader* shaderPtr;
 
-        scene();
+        bool instanced = false;
+
+        void changeParent();
+        inline instance* getParent() { return parent; }
+        void addChild();
+        void removeChild();
+        inline std::vector<instance*> getChildren() { return children; }
+
+        void draw();
+        
+        instance();
+        ~instance();
     };
+    */
+    
 }

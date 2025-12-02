@@ -17,7 +17,7 @@ struct matrix {
 
 	inline matrix(std::initializer_list<float> init) {
 		if (init.size() <= h * w) {
-			std::move(init.begin(), init.end(), array); // dont know if this is undefined behaviour
+			std::move(init.begin(), init.end(), array);
 		}
 		else { // only here to stop buffer overflows
 			std::cout << "an initalizer list provided is larger than matrix size" << "\n";

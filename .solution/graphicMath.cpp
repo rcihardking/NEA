@@ -41,45 +41,24 @@ mat4 graphics::createEulerRotation(float rot[3]) {
 	float cosZ = cosf(z);
 	float sinZ = sinf(z);
 
-	matrix<4, 4> rotX;
-	matrix<4, 4> rotY;
-	matrix<4, 4> rotZ;
-
-	if (x == 0.0f) {
-		rotX = iden4();
-	}
-	else {
-		float cosX = cosf(x);
-		float sinX = cosf(x);
-		rotX = {
-			1.0f, 0.0f, 0.0f, 0.0f,
-			0.0f, cosX, -sinX, 0.0f,
-			0.0f, sinX, cosX, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		};
-	}
-	if (y == 0.0f) {
-		rotY = iden4();
-	} 
-	else {
-		rotY = {
-			cosY, 0.0f, sinY, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			-sinY, 0.0f, cosY, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		};
-	}
-	if (z == 0.0f) {
-		rotZ = iden4();
-	}
-	else {
-		rotZ = {
-			cosZ, -sinZ, 0.0f, 0.0f,
-			sinZ, cosZ, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		};
-	}
+	matrix<4, 4> rotX = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, cosX, -sinX, 0.0f,
+		0.0f, sinX, cosX, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	matrix<4, 4> rotY = {
+		cosY, 0.0f, sinY, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		-sinY, 0.0f, cosY, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	matrix<4, 4> rotZ = {
+		cosZ, -sinZ, 0.0f, 0.0f,
+		sinZ, cosZ, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
 	return rotY * (rotX * rotZ);
 }
 

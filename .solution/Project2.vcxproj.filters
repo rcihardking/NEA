@@ -24,7 +24,7 @@
     <ClCompile Include="graphicHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="imageHandler.cpp">
+    <ClCompile Include="fileLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClInclude Include="graphicHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="imageHandler.h">
+    <ClInclude Include="fileLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

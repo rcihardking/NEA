@@ -9,7 +9,7 @@
 #include <chrono>
 #include <iomanip>
 
-#include "imageHandler.h"
+#include "fileLoader.h"
 #include "graphicHandler.h"
 #include "graphicMath.h"
 
@@ -89,25 +89,35 @@ int main()
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
+    std::vector<std::string> images;
+    images.push_back("../textures/box.png");
+    images.push_back("../textures/checkermap_resized.png");
+    imageLoader imageLoader;
+
+    imageLoader.addImages(images);
+    std::vector<GLuint> textures = imageLoader.genImages();
+
+    /*
     image newImage("../textures/box.png");
     newImage.createTexture();
 
     image newImage1("../textures/checkermap_resized.png");
     newImage1.createTexture();
+    */
 
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
         "../meshes/monkey.obj",
         newShader.ID,
-        newImage.texture
+        textures[0]
     );
     mesh1.move({ 1.5f, 0.0f, -6.5f });
    
     graphics::mesh mesh2(
         "../meshes/cube.obj",
         newShader.ID, 
-        newImage.texture
+        textures[1]
     );
     mesh2.move({ -1.5f, 0.0f, -6.5f });
     
