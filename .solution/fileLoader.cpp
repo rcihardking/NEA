@@ -194,13 +194,6 @@ int imageLoader::readPNG(std::string filepath) {
 	return 0;
 }
 
-int imageLoader::addImage(std::string imageFilepath) {
-	readPNG(imageFilepath); // need to recognise file extensions and change image reader accordingly
-	// currently can only read PNGs
-
-	return 0;
-}
-
 int imageLoader::addImages(std::vector<std::string> imageFilepaths) {
 	for (int i = 0; i < imageFilepaths.size(); ++i) {
 		readPNG(imageFilepaths[i]);
@@ -239,4 +232,44 @@ std::vector<GLuint> imageLoader::genImages() {
 	dataArrays.clear();
 
 	return loadedTextures;
+}
+
+int readOBJ(std::string meshFilepath) {
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
+
+	std::ifstream obj(meshFilepath);
+	if (!obj.is_open()) {
+		return 1;
+	}
+
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+}
+
+
+int meshLoader::addMeshs(std::vector<std::string> meshFilepaths) {
+
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
+
+	std::ifstream obj(meshFilepath);
+	if (!obj.is_open()) {
+		return 1;
+	}
+
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+}
+
+std::vector<GLuint> genMeshes(GLuint vao) {
+
 }

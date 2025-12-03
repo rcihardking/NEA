@@ -14,7 +14,6 @@ private:
 
 	int readPNG(std::string imageFilepath);
 public:
-	int addImage(std::string imageFilepath);
 	int addImages(std::vector<std::string> imageFilepaths);
 	std::vector<GLuint> genImages();
 };
@@ -22,8 +21,9 @@ public:
 class meshLoader {
 private:
 	std::vector< std::vector<float> > vertexArrays;
+
+	int readOBJ(std::string meshFilepath);
 public:
-	int addMesh(std::string meshFilepath);
 	int addMeshs(std::vector<std::string> meshFilepaths);
 	std::vector<GLuint> genMeshes(GLuint vao);
 };
