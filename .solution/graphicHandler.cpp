@@ -51,6 +51,7 @@ graphics::shader::~shader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
+
 static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, int len) {
     std::smatch matchObj;
     std::regex_match(line, matchObj, reg);

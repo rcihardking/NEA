@@ -21,23 +21,6 @@ namespace graphics {
         ~shader();
     };
 
-    /*
-    struct texture {
-        GLuint ID;
-
-
-    };
-
-    struct mesh {
-        GLuint vao;
-        GLuint vbo;
-        int size;
-
-        mesh(std::string meshFilepath);
-        ~mesh();
-    };
-    */
-
     class location {
     protected:
         float position[3] = { 0.0f, 0.0f, 0.0f };
@@ -78,29 +61,44 @@ namespace graphics {
         int readObj(std::string filepath);
     };
     
-    /*
-    class instance : public location {
-    private:
-        instance* parent;
-        std::vector<instance*> children;
+    class scene {
     public:
-        mesh* meshPtr;
-        image* texturePtr;
-        shader* shaderPtr;
+        class instance : public location {
+        private:
+            instance* parent;
+            std::vector<instance*> children;
 
-        bool instanced = false;
+            GLuint shader;
 
-        void changeParent();
-        inline instance* getParent() { return parent; }
-        void addChild();
-        void removeChild();
-        inline std::vector<instance*> getChildren() { return children; }
+            int meshIndex;
+            int textureIndex;
+        public:
+            const std::vector<instance*> getChildren();
+            instance* getParent();
 
-        void draw();
-        
-        instance();
-        ~instance();
+            void changeParent(instance* newParent);
+            void removeChild(instance* child);
+            void addChild(instance* child);
+        };
+
+        int loadMesh(std::string meshFilepath);
+        int loadImage(std::string imageFilepath);
+
+        instance createInstance(int meshIndex, int textureIndex, GLuint shader);
+    private:
+        struct mesh {
+            GLuint vbo;
+            size_t size;
+
+            GLuint vao;
+        };
+
+        struct texture { // struct is only here for the sake of extensibility
+            GLuint image;
+        };
+
+        std::vector<mesh> meshes;
+        std::vector<texture> textures;
+        instance* root;
     };
-    */
-    
 }

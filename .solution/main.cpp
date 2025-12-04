@@ -97,6 +97,9 @@ int main()
     imageLoader.addImages(images);
     std::vector<GLuint> textures = imageLoader.genImages();
 
+    meshLoader meshLoader;
+    meshLoader.readOBJ("../meshes/monkey.obj");
+
     /*
     image newImage("../textures/box.png");
     newImage.createTexture();

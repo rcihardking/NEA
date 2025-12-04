@@ -234,40 +234,96 @@ std::vector<GLuint> imageLoader::genImages() {
 	return loadedTextures;
 }
 
-int readOBJ(std::string meshFilepath) {
-	std::vector<float> vertexPos;
-	std::vector<float> vertexNor;
-	std::vector<float> vertexTex;
 
-	std::ifstream obj(meshFilepath);
-	if (!obj.is_open()) {
+
+int meshLoader::readOBJ(std::string meshFilepath) {
+	std::vector<float> verticies;
+	std::vector<float> positions;
+	std::vector<float> textures;
+	std::vector<float> normals;
+
+	std::ifstream meshFile(meshFilepath);
+
+	if (!meshFile.is_open()) {
 		return 1;
 	}
 
+	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
 	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
 	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
-	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
+
+	for (std::string line; std::getline(meshFile, line); ) {
+		std::smatch headerMatch;
+		std::regex_match(line, headerMatch, header);
+		if (headerMatch.size() < 2) {
+			continue;
+		}
+
+		if (headerMatch[1] == "v") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, v);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				positions.push_back( stof( matchObj[i + 1].str() ) );
+			}
+		}
+		else if (headerMatch[1] == "vt") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, vt);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 2; ++i) {
+				textures.push_back( stof( matchObj[i + 1].str() ) );
+			}
+		}
+		else if (headerMatch[1] == "vn") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, vn);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				normals.push_back( stof( matchObj[i + 1].str() ) );
+			}
+		}
+		else if (headerMatch[1] == "f") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+			std::array<int, 9> indexes;
+			for (int i = 0; i < 9; ++i) {
+				indexes[i] = stoi( matchObj[i + 1].str() ) - 1;
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				verticies.push_back(positions[indexes[i * 3]]);
+				verticies.push_back(textures[indexes[i * 3 + 1]]);
+				verticies.push_back(normals[indexes[i * 3 + 2]]);
+			}
+		}
+		else {
+			continue;
+		}
+	}
+
+	vertexArrays.push_back(verticies);
+
+	return 0;
 }
 
 
-int meshLoader::addMeshs(std::vector<std::string> meshFilepaths) {
+int meshLoader::addMeshes(std::vector<std::string> meshFilepaths) {
 
-	std::vector<float> vertexPos;
-	std::vector<float> vertexNor;
-	std::vector<float> vertexTex;
-
-	std::ifstream obj(meshFilepath);
-	if (!obj.is_open()) {
-		return 1;
-	}
-
-	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
-	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
 }
 
 std::vector<GLuint> genMeshes(GLuint vao) {
