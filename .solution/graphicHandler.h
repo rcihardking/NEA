@@ -3,6 +3,7 @@
 #include "graphicMath.h"
 
 #include <glad/glad.h>
+#include <libpng/png.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -14,13 +15,6 @@
 
 
 namespace graphics {
-    struct shader {
-        const GLuint ID = glCreateProgram();
-
-        shader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~shader();
-    };
-
     class location {
     protected:
         float position[3] = { 0.0f, 0.0f, 0.0f };
@@ -40,65 +34,87 @@ namespace graphics {
         virtual void resize(float factor);
     };
 
-    
-    class mesh : public location {
+    /*
+    class staticMesh : public location {
     public:
-        mesh(std::string filepath, GLuint shaderID, GLuint textureID);
-        ~mesh();
+        staticMesh(std::string filepath, GLuint shaderID, GLuint textureID, GLuint vao);
+        ~staticMesh();
         void draw();
         
     private:
         GLuint shaderID; // perhaps each scene should be given a shader?
         GLuint textureID;
-
         GLuint vao;
         GLuint vbo;
+
         std::vector<float> verticies;
         
         mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
         mat4 transformation;
 
+        
+
         int readObj(std::string filepath);
     };
-    
+    */
+
+
+    struct mesh {
+        GLuint vbo;
+        size_t size;
+
+        GLuint vao;
+    };
+
+    struct texture { // struct is only here for the sake of extensibility
+        GLuint image;
+    };
+
+    template<int shaderType>
+    struct shader {
+        const GLuint ID = glCreateProgram();
+        std::vector<GLuint> uniformLocations;
+
+        shader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~shader();
+    };
+
     class scene {
     public:
-        class instance : public location {
-        private:
-            instance* parent;
-            std::vector<instance*> children;
-
-            GLuint shader;
-
-            int meshIndex;
-            int textureIndex;
-        public:
-            const std::vector<instance*> getChildren();
-            instance* getParent();
-
-            void changeParent(instance* newParent);
-            void removeChild(instance* child);
-            void addChild(instance* child);
-        };
-
-        int loadMesh(std::string meshFilepath);
+        //scene();
+        
+        int loadMesh(std::string meshFilepath, GLuint vao);
         int loadImage(std::string imageFilepath);
 
-        instance createInstance(int meshIndex, int textureIndex, GLuint shader);
-    private:
-        struct mesh {
-            GLuint vbo;
-            size_t size;
-
-            GLuint vao;
-        };
-
-        struct texture { // struct is only here for the sake of extensibility
-            GLuint image;
-        };
+        mat4 perspective = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
 
         std::vector<mesh> meshes;
         std::vector<texture> textures;
-        instance* root;
+
+        template <int shaderType>
+        shader<shaderType> sceneShader();
+    };
+
+    class staticInstance : public location {
+    private:
+        scene* myScene;
+
+        staticInstance* parent;
+        std::vector<staticInstance*> children;
+
+        GLuint shader;
+        int meshIndex;
+        int textureIndex;
+    public:
+        inline staticInstance(scene* scene, int mesh, int texture, GLuint shaderID) : myScene{ scene }, meshIndex { mesh }, textureIndex{ texture }, shader{ shaderID } {};
+
+        void draw();
+
+        const std::vector<staticInstance*> getChildren();
+        staticInstance* getParent();
+
+        void changeParent(staticInstance* newParent);
+        void removeChild(staticInstance* child);
+        void addChild(staticInstance* child);
     };
 }

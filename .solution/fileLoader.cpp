@@ -315,7 +315,6 @@ int meshLoader::readOBJ(std::string meshFilepath) {
 			continue;
 		}
 	}
-
 	vertexArrays.push_back(verticies);
 
 	return 0;
