@@ -14,7 +14,7 @@ uniform mat4 proj;
 
 void main()
 {
-    gl_Position = proj * translation * rotation * vec4(inPos, 1.0);
+    gl_Position = proj * translation * rotation * scale * vec4(inPos, 1.0);
     UV = vec2(inTex.x, 1.0 - inTex.y);
     //normal = inNor;
 }    

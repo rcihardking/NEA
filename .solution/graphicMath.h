@@ -28,13 +28,14 @@ struct matrix {
 	template<class T>
 	inline auto operator* (T other) {
 		static_assert(width == other.height);
+		/*
 		if (identity == true) {
 			return other;
 		}
 		else if (other.identity == true) {
 			return *this;
 		}
-
+		*/
 		matrix<h, other.width> newMatrix;
 
 		for (int k = 0; k < h; ++k) {

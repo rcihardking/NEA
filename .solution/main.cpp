@@ -89,6 +89,7 @@ int main()
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
+    /*
     std::vector<std::string> images;
     images.push_back("../textures/box.png");
     images.push_back("../textures/checkermap_resized.png");
@@ -98,6 +99,7 @@ int main()
     std::vector<GLuint> textures = imageLoader.genImages();
 
     meshLoader meshLoader;
+    */
 
     /*
     image newImage("../textures/box.png");
@@ -107,6 +109,7 @@ int main()
     newImage1.createTexture();
     */
 
+    /*
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
@@ -122,16 +125,48 @@ int main()
         textures[1]
     );
     mesh2.move({ -1.5f, 0.0f, -6.5f });
-    
+    */
+
+    GLuint newvao;
+    glGenVertexArrays(1, &newvao);
+    glBindVertexArray(newvao);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
+	glEnableVertexAttribArray(2);
+
+    graphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+
+    graphics::scene newScene;
+    int planeIndex = newScene.loadMesh("../meshes/plane.obj", newvao);
+    //int monkeyIndex = newScene.loadMesh("../meshes/monkey.obj", newvao);
+
+    int boxIndex = newScene.loadImage("../textures/box.png");
+
+    graphics::staticInstance mesh1 = { &newScene, &newShader, planeIndex, boxIndex };
+    //mesh1.move({ -6.5f, 0.0f, -1.5f });
+    //graphics::staticInstance mesh2 = { &newScene, &newShader, monkeyIndex, boxIndex };
+    //mesh2.move({ -6.5f, 0.0f, 1.5f });
+
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
 
+        /*
         mesh1.draw();
         mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
         mesh2.draw();
         mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
+        */
+
+        mesh1.draw();
+        //mesh2.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -1,8 +1,8 @@
 #include "graphicHandler.h"
 
-graphics::shader::shader(std::string vertexFilepath, std::string fragmentFilepath) { // maybe change so input argument is just one vector?
+static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragmentFilepath) {
 	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
-	static constexpr GLenum types[2] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER};
+	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 
 	if (filepaths.size() > 4) {
 		assert(false);
@@ -36,18 +36,32 @@ graphics::shader::shader(std::string vertexFilepath, std::string fragmentFilepat
 			assert(false);
 		}
 
-		glAttachShader(ID, newShader);
+		glAttachShader(*ID, newShader);
 	}
 
-	glLinkProgram(ID);
+	glLinkProgram(*ID);
 
 	for (int i = 0; i < shaders.size(); ++i) {
-		glDetachShader(ID, shaders[i]);
+		glDetachShader(*ID, shaders[i]);
 		glDeleteShader(shaders[i]);
 	}
 }
 
-graphics::shader::~shader() {
+graphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
+	loadShader(&ID, vertexFilepath, fragmentFilepath);
+
+	static const GLuint loc0 = glGetUniformLocation(ID, "scale");
+    static const GLuint loc1 = glGetUniformLocation(ID, "rotation");
+    static const GLuint loc2 = glGetUniformLocation(ID, "translation");
+    static const GLuint loc3 = glGetUniformLocation(ID, "proj");
+
+	uniformLocations.push_back(loc0);
+	uniformLocations.push_back(loc1);
+	uniformLocations.push_back(loc2);
+	uniformLocations.push_back(loc3);
+}
+
+graphics::staticShader::~staticShader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
@@ -209,11 +223,88 @@ graphics::shader::~shader() {
 //    glBindTexture(GL_TEXTURE_2D, 0);
 //}
 
-/*
-graphics::scene::scene() {
-	
-}
-*/
+//static std::vector<float> readOBJ(std::string meshFilepath) {
+//	std::vector<float> verticies;
+//	std::vector<float> positions;
+//	std::vector<float> textures;
+//	std::vector<float> normals;
+//
+//	std::ifstream meshFile(meshFilepath);
+//
+//	if (!meshFile.is_open()) {
+//		return verticies;
+//	}
+//
+//	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
+//	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
+//
+//	for (std::string line; std::getline(meshFile, line); ) {
+//		std::smatch headerMatch;
+//		std::regex_match(line, headerMatch, header);
+//		if (headerMatch.size() < 2) {
+//			continue;
+//		}
+//
+//		if (headerMatch[1] == "v") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, v);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				positions.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "vt") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, vt);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 2; ++i) {
+//				textures.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "vn") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, vn);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				normals.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "f") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, f);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//			std::array<int, 9> indexes;
+//			for (int i = 0; i < 9; ++i) {
+//				indexes[i] = stoi(matchObj[i + 1].str()) - 1;
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				verticies.push_back(positions[indexes[i * 3]]);
+//				verticies.push_back(textures[indexes[i * 3 + 1]]);
+//				verticies.push_back(normals[indexes[i * 3 + 2]]);
+//			}
+//		}
+//		else {
+//			continue;
+//		}
+//	}
+//
+//	return verticies;
+//}
 
 static std::vector<float> readOBJ(std::string meshFilepath) {
 	std::vector<float> verticies;
@@ -224,7 +315,7 @@ static std::vector<float> readOBJ(std::string meshFilepath) {
 	std::ifstream meshFile(meshFilepath);
 
 	if (!meshFile.is_open()) {
-		return 1;
+		return verticies;
 	}
 
 	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
@@ -301,13 +392,29 @@ static std::vector<float> readOBJ(std::string meshFilepath) {
 int graphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	std::vector<float> verticies = readOBJ(meshFilepath);
 	mesh newMesh;
+	
+	glGenVertexArrays(1, &newMesh.vao);
+	glBindVertexArray(newMesh.vao);
 
 	glGenBuffers(1, &newMesh.vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
 	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	newMesh.size = verticies.size();
-	newMesh.vao = vao;
+
+	std::cout << newMesh.size << "\n" << newMesh.vao << "\n" << newMesh.vbo << "\n";
 
 	meshes.push_back(newMesh);
 	return meshes.size();
@@ -409,8 +516,11 @@ int graphics::scene::loadImage(std::string imageFilepath) {
 	return textures.size();
 }
 
+
+
 void graphics::staticInstance::draw() {
 	if (meshIndex != 0) {
+		glUseProgram(myShader->ID);
 		graphics::mesh* myMesh = &myScene->meshes[meshIndex - 1];
 
 		if (textureIndex != 0) {
@@ -420,23 +530,46 @@ void graphics::staticInstance::draw() {
 		glBindVertexArray(myMesh->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
 
-		static const GLuint loc0 = glGetUniformLocation(shader, "scale");
-		static const GLuint loc1 = glGetUniformLocation(shader, "rotation");
-		static const GLuint loc2 = glGetUniformLocation(shader, "translation");
-		static const GLuint loc3 = glGetUniformLocation(shader, "projection");
-
-		glUniformMatrix4fv(loc0, 1, true, scale.array);
-		glUniformMatrix4fv(loc1, 1, true, rotation.array);
-		glUniformMatrix4fv(loc2, 1, true, translation.array);
-		glUniformMatrix4fv(loc3, 1, true, myScene->perspective.array);
+		glUniformMatrix4fv(myShader->uniformLocations[0], 1, true, scale.array);
+		glUniformMatrix4fv(myShader->uniformLocations[1], 1, true, rotation.array);
+		glUniformMatrix4fv(myShader->uniformLocations[2], 1, true, translation.array);
+		glUniformMatrix4fv(myShader->uniformLocations[3], 1, true, myScene->perspective.array);
 
 		glDrawArrays(GL_TRIANGLES, 0, myMesh->size);
 		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	
+	if (children.size() == 0) {
+		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
 		staticInstance* child = *it;
 		child->draw();
 	}
+	
+}
+
+void graphics::staticInstance::removeChild(staticInstance* child) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		if (*it == child) {
+			children.erase(it);
+			return;
+		}
+	}
+	std::cout << "child doesnt exist\n";
+	return;
+}
+
+void graphics::staticInstance::addChild(staticInstance* child) {
+	children.push_back(child);
+}
+
+void graphics::staticInstance::changeParent(staticInstance* newParent) {
+	if (parent != nullptr) {
+		parent->removeChild(this);
+	}
+	newParent->addChild(this);
+	parent = newParent;
 }
 
 

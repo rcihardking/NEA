@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "graphicMath.h"
 
 #include <glad/glad.h>
@@ -60,23 +62,14 @@ namespace graphics {
 
 
     struct mesh {
-        GLuint vbo;
-        size_t size;
+        GLuint vbo = 0;
+        GLsizei size = 0;
 
-        GLuint vao;
+        GLuint vao = 0;
     };
 
     struct texture { // struct is only here for the sake of extensibility
         GLuint image;
-    };
-
-    template<int shaderType>
-    struct shader {
-        const GLuint ID = glCreateProgram();
-        std::vector<GLuint> uniformLocations;
-
-        shader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~shader();
     };
 
     class scene {
@@ -90,31 +83,37 @@ namespace graphics {
 
         std::vector<mesh> meshes;
         std::vector<texture> textures;
-
-        template <int shaderType>
-        shader<shaderType> sceneShader();
     };
+
+    struct staticShader {
+        GLuint ID = glCreateProgram();
+        std::vector<GLuint> uniformLocations;
+
+        staticShader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~staticShader();
+    };
+
 
     class staticInstance : public location {
     private:
         scene* myScene;
+        staticShader* myShader;
 
-        staticInstance* parent;
+        staticInstance* parent = nullptr;
         std::vector<staticInstance*> children;
 
-        GLuint shader;
         int meshIndex;
         int textureIndex;
     public:
-        inline staticInstance(scene* scene, int mesh, int texture, GLuint shaderID) : myScene{ scene }, meshIndex { mesh }, textureIndex{ texture }, shader{ shaderID } {};
+        inline staticInstance(scene* scene, staticShader* shader, int mesh, int texture) : myScene{ scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
 
         void draw();
 
-        const std::vector<staticInstance*> getChildren();
-        staticInstance* getParent();
+        inline const std::vector<staticInstance*> getChildren() { return static_cast<const std::vector<staticInstance*>>(children); };
+        inline staticInstance* getParent() { return parent; };
 
-        void changeParent(staticInstance* newParent);
         void removeChild(staticInstance* child);
         void addChild(staticInstance* child);
+        void changeParent(staticInstance* newParent);
     };
 }
