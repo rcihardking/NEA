@@ -93,6 +93,7 @@ namespace graphics {
 
         GLuint vao;
         GLuint vbo;
+        GLsizei size;
         std::vector<float> verticies;
         
         mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
@@ -105,11 +106,5 @@ namespace graphics {
         std::vector<instance*> children;
         instance* parent;
         int meshIndex;
-    };
-
-    class workspace {
-    private:
-        std::vector<mesh*> meshes;
-        instance root;
     };
 }

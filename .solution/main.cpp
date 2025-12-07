@@ -98,7 +98,7 @@ int main()
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
-        "../meshes/plane.obj",
+        "../meshes/cube.obj",
         newShader.ID,
         newImage.texture
     );

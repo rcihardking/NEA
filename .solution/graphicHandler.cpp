@@ -160,7 +160,7 @@ graphics::mesh::mesh(std::string filepath, GLuint shader, GLuint texture) : shad
 		assert(false);
 	}
 
-	std::cout << verticies.size() << "\n";
+	size = verticies.size();
 
 	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
@@ -194,7 +194,7 @@ void graphics::mesh::draw() {
     glUniformMatrix4fv(loc3, 1, true, projection.array);
 
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(verticies.size()));
+    glDrawArrays(GL_TRIANGLES, 0, size);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }
