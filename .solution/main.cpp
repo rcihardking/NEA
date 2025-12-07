@@ -98,18 +98,20 @@ int main()
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
-        "../meshes/monkey.obj",
+        "../meshes/plane.obj",
         newShader.ID,
         newImage.texture
     );
     mesh1.move({ 1.5f, 0.0f, -6.5f });
    
+    /*
     graphics::mesh mesh2(
         "../meshes/cube.obj",
         newShader.ID, 
         newImage.texture
     );
     mesh2.move({ -1.5f, 0.0f, -6.5f });
+    */
     
 
     while (!glfwWindowShouldClose(window)) {
@@ -118,8 +120,8 @@ int main()
 
         mesh1.draw();
         mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
-        mesh2.draw();
-        mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
+        //mesh2.draw();
+       // mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
 
         glfwSwapBuffers(window);
         glfwPollEvents();

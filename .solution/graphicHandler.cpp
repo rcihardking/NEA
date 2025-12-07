@@ -160,6 +160,8 @@ graphics::mesh::mesh(std::string filepath, GLuint shader, GLuint texture) : shad
 		assert(false);
 	}
 
+	std::cout << verticies.size() << "\n";
+
 	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
