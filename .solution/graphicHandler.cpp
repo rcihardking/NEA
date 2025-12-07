@@ -78,7 +78,7 @@ graphics::staticShader::~staticShader() {
 //    }
 //}
 //
-//int graphics::staticMesh::readObj(std::string meshFilepath) { // this code is CRAP CRAP CRAP!!! must fix
+//int graphics::mesh::readObj(std::string meshFilepath) { // this code is CRAP CRAP CRAP!!! must fix
 //	std::vector<float> positions;
 //	std::vector<float> textures;
 //	std::vector<float> normals;
@@ -389,15 +389,18 @@ static std::vector<float> readOBJ(std::string meshFilepath) {
 	return verticies;
 }
 
-int graphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
-	std::vector<float> verticies = readOBJ(meshFilepath);
+int graphics::scene::loadMesh(std::string meshFilepath) {
 	mesh newMesh;
-	
-	glGenVertexArrays(1, &newMesh.vao);
-	glBindVertexArray(newMesh.vao);
+	std::vector<float> verticies = readOBJ(meshFilepath);
 
-	glGenBuffers(1, &newMesh.vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
+	GLuint vao;
+	GLuint vbo;
+	
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
@@ -413,6 +416,8 @@ int graphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	newMesh.size = verticies.size();
+	newMesh.vbo = vbo;
+	newMesh.vao = vao;
 
 	std::cout << newMesh.size << "\n" << newMesh.vao << "\n" << newMesh.vbo << "\n";
 

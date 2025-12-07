@@ -26,7 +26,7 @@ namespace graphics {
         mat4 translation = createTranslation(0.0f, 0.0f, 0.0f);
         mat4 rotation = createEulerRotation(0.0f, 0.0f, 0.0f);
         mat4 scale = createScale(1.0f);
-    
+
     public:
         inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
         virtual void move(std::initializer_list<float> pos);
@@ -35,31 +35,6 @@ namespace graphics {
         inline float getSize() { return size; }
         virtual void resize(float factor);
     };
-
-    /*
-    class staticMesh : public location {
-    public:
-        staticMesh(std::string filepath, GLuint shaderID, GLuint textureID, GLuint vao);
-        ~staticMesh();
-        void draw();
-        
-    private:
-        GLuint shaderID; // perhaps each scene should be given a shader?
-        GLuint textureID;
-        GLuint vao;
-        GLuint vbo;
-
-        std::vector<float> verticies;
-        
-        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
-        mat4 transformation;
-
-        
-
-        int readObj(std::string filepath);
-    };
-    */
-
 
     struct mesh {
         GLuint vbo = 0;
@@ -76,7 +51,7 @@ namespace graphics {
     public:
         //scene();
         
-        int loadMesh(std::string meshFilepath, GLuint vao);
+        int loadMesh(std::string meshFilepath);
         int loadImage(std::string imageFilepath);
 
         mat4 perspective = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);

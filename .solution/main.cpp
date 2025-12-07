@@ -143,7 +143,7 @@ int main()
     graphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::scene newScene;
-    int planeIndex = newScene.loadMesh("../meshes/plane.obj", newvao);
+    int planeIndex = newScene.loadMesh("../meshes/plane.obj");
     //int monkeyIndex = newScene.loadMesh("../meshes/monkey.obj", newvao);
 
     int boxIndex = newScene.loadImage("../textures/box.png");
