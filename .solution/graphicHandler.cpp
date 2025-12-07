@@ -65,163 +65,208 @@ graphics::staticShader::~staticShader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
-//static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, int len) {
-//    std::smatch matchObj;
-//    std::regex_match(line, matchObj, reg);
-//
-//    if (matchObj.size() < 2) {
-//        assert(false);
-//    }
-//
-//    for (int i = 0; i < len; ++i) {
-//        vec->push_back(std::stof(matchObj[i + 1].str()));
-//    }
-//}
-//
-//int graphics::mesh::readObj(std::string meshFilepath) { // this code is CRAP CRAP CRAP!!! must fix
-//	std::vector<float> positions;
-//	std::vector<float> textures;
-//	std::vector<float> normals;
-//
-//	std::ifstream meshFile(meshFilepath);
-//
-//	if (!meshFile.is_open()) {
-//		return 1;
-//	}
-//
-//	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
-//	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-//	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-//	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-//	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
-//
-//	for (std::string line; std::getline(meshFile, line); ) {
-//		std::smatch headerMatch;
-//		std::regex_match(line, headerMatch, header);
-//		if (headerMatch.size() < 2) {
-//			continue;
-//		}
-//
-//		if (headerMatch[1] == "v") {
-//			std::smatch matchObj;
-//			std::regex_match(line, matchObj, v);
-//			if (matchObj.size() < 2) {
-//				assert(false);
-//			}
-//
-//			for (int i = 0; i < 3; ++i) {
-//				positions.push_back(stof(matchObj[i + 1].str()));
-//			}
-//		}
-//		else if (headerMatch[1] == "vt") {
-//			std::smatch matchObj;
-//			std::regex_match(line, matchObj, vt);
-//			if (matchObj.size() < 2) {
-//				assert(false);
-//			}
-//
-//			for (int i = 0; i < 2; ++i) {
-//				textures.push_back(stof(matchObj[i + 1].str()));
-//			}
-//		}
-//		else if (headerMatch[1] == "vn") {
-//			std::smatch matchObj;
-//			std::regex_match(line, matchObj, vn);
-//			if (matchObj.size() < 2) {
-//				assert(false);
-//			}
-//
-//			for (int i = 0; i < 3; ++i) {
-//				normals.push_back(stof(matchObj[i + 1].str()));
-//			}
-//		}
-//		else if (headerMatch[1] == "f") {
-//			std::smatch matchObj;
-//			std::regex_match(line, matchObj, f);
-//			if (matchObj.size() < 2) {
-//				assert(false);
-//			}
-//			std::array<int, 9> indexes;
-//			for (int i = 0; i < 9; ++i) {
-//				indexes[i] = stoi(matchObj[i + 1].str()) - 1;
-//			}
-//
-//			for (int i = 0; i < 3; ++i) {
-//				verticies.push_back(positions[indexes[i * 3]]);
-//				verticies.push_back(textures[indexes[i * 3 + 1]]);
-//				verticies.push_back(normals[indexes[i * 3 + 2]]);
-//			}
-//		}
-//		else {
-//			continue;
-//		}
-//	}
-//
-//	return 0;
-//}
-//
-//graphics::staticMesh::staticMesh(std::string filepath, GLuint shader, GLuint texture) : shaderID{ shader }, textureID{ texture } {
-//	glGenVertexArrays(1, &vao);
-//	glBindVertexArray(vao);
-//
-//	glGenBuffers(1, &vbo);
-//	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//
-//	static const std::regex type("([a-z]|[A-Z]|[0-9]|_|/|./|../)*.([a-z]*)");
-//	std::smatch matchObj;
-//	std::regex_match(filepath, matchObj, type); // matchObj[2] will be the file extension
-//
-//	if (matchObj.size() < 2) {
-//		std::cout << "malformed file path\n";
-//		assert(false);
-//	}
-//	if (matchObj[2] == "obj") {
-//		if (readObj(filepath)) {
-//			std::cout << "file doesnt exist?\n";
-//			assert(false);
-//		}
-//	}
-//	else {
-//		std::cout << "unknown mesh format\n";
-//		assert(false);
-//	}
-//
-//	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
-//
-//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
-//	glEnableVertexAttribArray(0);
-//
-//	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
-//	glEnableVertexAttribArray(1);
-//
-//	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
-//	glEnableVertexAttribArray(2);
-//}
-//
-//graphics::staticMesh::~staticMesh() {
-//	glDeleteBuffers(1, &vbo);
-//	glDeleteVertexArrays(1, &vao);
-//}
-//
-//void graphics::staticMesh::draw() {
-//    glUseProgram(shaderID);
-//    glBindTexture(GL_TEXTURE_2D, textureID);
-//
-//    static const GLuint loc0 = glGetUniformLocation(shaderID, "scale");
-//    static const GLuint loc1 = glGetUniformLocation(shaderID, "rotation");
-//    static const GLuint loc2 = glGetUniformLocation(shaderID, "translation");
-//    static const GLuint loc3 = glGetUniformLocation(shaderID, "proj");
-//
-//    glUniformMatrix4fv(loc0, 1, true, scale.array);
-//    glUniformMatrix4fv(loc1, 1, true, rotation.array);
-//    glUniformMatrix4fv(loc2, 1, true, translation.array);
-//    glUniformMatrix4fv(loc3, 1, true, projection.array);
-//
-//    glBindVertexArray(vao);
-//    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(verticies.size()));
-//
-//    glBindTexture(GL_TEXTURE_2D, 0);
-//}
+
+
+graphics::oldshader::oldshader(std::string vertexFilepath, std::string fragmentFilepath) { // maybe change so input argument is just one vector?
+	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
+	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+
+	if (filepaths.size() > 4) {
+		assert(false);
+	}
+
+	std::vector<GLuint> shaders;
+	shaders.reserve(filepaths.size());
+	for (int i = 0; i < filepaths.size(); ++i) {
+		std::ifstream text(filepaths[i]);
+		if (!text.is_open()) {
+			std::cout << filepaths[i] << "\ndoesn't exist";
+			assert(false);
+		}
+
+		std::stringstream buffer;
+		buffer << text.rdbuf();
+		std::string temp = buffer.str();
+		const char* shaderText = temp.c_str();
+		text.close();
+
+		GLuint newShader = glCreateShader(types[i]);
+		glShaderSource(newShader, 1, &shaderText, NULL);
+		glCompileShader(newShader);
+
+		int result;
+		glGetShaderiv(newShader, GL_COMPILE_STATUS, &result);
+		if (!result) {
+			char errLog[512];
+			glGetShaderInfoLog(newShader, 512, NULL, errLog);
+			std::cout << errLog << "\n";
+			assert(false);
+		}
+
+		glAttachShader(ID, newShader);
+	}
+
+	glLinkProgram(ID);
+
+	for (int i = 0; i < shaders.size(); ++i) {
+		glDetachShader(ID, shaders[i]);
+		glDeleteShader(shaders[i]);
+	}
+}
+
+graphics::oldshader::~shader() {
+	if (ID) { glDeleteProgram(ID); }
+}
+
+static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, int len) {
+	std::smatch matchObj;
+	std::regex_match(line, matchObj, reg);
+
+	if (matchObj.size() < 2) {
+		assert(false);
+	}
+
+	for (int i = 0; i < len; ++i) {
+		vec->push_back(std::stof(matchObj[i + 1].str()));
+	}
+}
+
+int graphics::oldmesh::readObj(std::string filepath) { // this code is CRAP CRAP CRAP!!! must fix
+
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
+
+	std::ifstream obj(filepath);
+	if (!obj.is_open()) {
+		return 1;
+	}
+
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+
+	for (std::string line; std::getline(obj, line); ) {
+		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
+		case * "v" << sizeof(char) * 8 | *" ": // 30240
+			objRegex(line, v, &vertexPos, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"n": // 30318
+			objRegex(line, vn, &vertexNor, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"t": // 30324
+			objRegex(line, vt, &vertexTex, 2);
+
+
+			break;
+		case * "f" << sizeof(char) * 8 | *" ": // 26144
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+
+			if (matchObj.size() < 2) {
+				assert(false); // malformed obj file
+			}
+
+			std::vector<std::string> str_f;
+			for (int i = 0; i < 3; i++) {
+				str_f.push_back(matchObj[i + 1].str());
+			}
+
+			for (int i = 0; i < 3; i++) {
+				std::smatch faceIndices;
+				std::regex_match(str_f[i], faceIndices, index);
+
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
+
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
+
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
+			}
+
+			break;
+		}
+	}
+
+	return 0;
+}
+
+graphics::oldmesh::oldmesh(std::string filepath, GLuint shader, GLuint texture) : shaderID{ shader }, textureID{ texture } {
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	static const std::regex type("([a-z]|[A-Z]|[0-9]|_|/|./|../)*.([a-z]*)");
+	std::smatch matchObj;
+	std::regex_match(filepath, matchObj, type); // matchObj[2] will be the file extension
+
+	if (matchObj.size() < 2) {
+		std::cout << "malformed file path\n";
+		assert(false);
+	}
+	if (matchObj[2] == "obj") {
+		if (readObj(filepath)) {
+			std::cout << "file doesnt exist?\n";
+			assert(false);
+		}
+	}
+	else {
+		std::cout << "unknown mesh format\n";
+		assert(false);
+	}
+
+	size = verticies.size();
+
+	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
+	glEnableVertexAttribArray(2);
+}
+
+graphics::oldmesh::~oldmesh() {
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+}
+
+void graphics::oldmesh::draw() {
+	glUseProgram(shaderID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	static const GLuint loc0 = glGetUniformLocation(shaderID, "scale");
+	static const GLuint loc1 = glGetUniformLocation(shaderID, "rotation");
+	static const GLuint loc2 = glGetUniformLocation(shaderID, "translation");
+	static const GLuint loc3 = glGetUniformLocation(shaderID, "proj");
+
+	glUniformMatrix4fv(loc0, 1, true, scale.array);
+	glUniformMatrix4fv(loc1, 1, true, rotation.array);
+	glUniformMatrix4fv(loc2, 1, true, translation.array);
+	glUniformMatrix4fv(loc3, 1, true, projection.array);
+
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, size);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
 
 //static std::vector<float> readOBJ(std::string meshFilepath) {
 //	std::vector<float> verticies;
