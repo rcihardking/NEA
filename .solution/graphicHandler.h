@@ -15,6 +15,61 @@
 #include <array>
 #include <regex>
 
+namespace oldgraphics {
+    struct shader {
+        const GLuint ID = glCreateProgram();
+
+        shader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~shader();
+    };
+
+    class location {
+    protected:
+        float position[3] = { 0.0f, 0.0f, 0.0f };
+        float orientation[3] = { 0.0f, 0.0f, 0.0f };
+        float size = 1.0f;
+
+        mat4 translation = createTranslation(0.0f, 0.0f, 0.0f);
+        mat4 rotation = createEulerRotation(0.0f, 0.0f, 0.0f);
+        mat4 scale = createScale(1.0f);
+
+    public:
+        inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
+        void move(std::initializer_list<float> pos);
+        inline std::array<float, 3> getOrientation() { return *reinterpret_cast<std::array<float, 3>*>(orientation); }
+        void rotate(std::initializer_list<float> rot);
+        inline float getSize() { return size; }
+        void resize(float factor);
+    };
+
+    class mesh : public location {
+    public:
+        mesh(std::string filepath, GLuint shaderID, GLuint textureID);
+        ~mesh();
+        void draw();
+
+    private:
+        GLuint shaderID; // perhaps each scene should be given a shader?
+        GLuint textureID;
+
+        GLuint vao;
+        GLuint vbo;
+        GLsizei size;
+        std::vector<float> verticies;
+
+        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
+
+        int readObj(std::string filepath);
+    };
+
+    class instance {
+    private:
+        std::vector<instance*> children;
+        instance* parent;
+        int meshIndex;
+    };
+}
+
 
 namespace graphics {
     class location {
@@ -35,37 +90,6 @@ namespace graphics {
         inline float getSize() { return size; }
         virtual void resize(float factor);
     };
-
-
-    struct oldshader {
-        const GLuint ID = glCreateProgram();
-
-        oldshader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~oldshader();
-    };
-
-    class oldmesh : public location {
-    public:
-        oldmesh(std::string filepath, GLuint shaderID, GLuint textureID);
-        ~oldmesh();
-        void draw();
-
-    private:
-        GLuint shaderID; // perhaps each scene should be given a shader?
-        GLuint textureID;
-
-        GLuint vao;
-        GLuint vbo;
-        GLsizei size;
-        std::vector<float> verticies;
-
-        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
-
-        int readObj(std::string filepath);
-    };
-
-
-
 
     struct mesh {
         GLuint vbo = 0;
