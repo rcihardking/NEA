@@ -127,21 +127,21 @@ int main()
     mesh2.move({ -1.5f, 0.0f, -6.5f });
     */
 
-    graphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
-    graphics::oldshader oldShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    //graphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    oldgraphics::shader oldShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
-    graphics::scene newScene;
-    int planeIndex = newScene.loadMesh("../meshes/cube.obj");
+    //graphics::scene newScene;
+    //int planeIndex = newScene.loadMesh("../meshes/cube.obj");
     //int monkeyIndex = newScene.loadMesh("../meshes/monkey.obj", newvao);
 
-    int boxIndex = newScene.loadImage("../textures/box.png");
+    //int boxIndex = newScene.loadImage("../textures/box.png");
 
-    graphics::staticInstance mesh1 = { &newScene, &newShader, planeIndex, boxIndex };
-    mesh1.move({ -6.5f, 0.0f, -1.5f });
+    //graphics::staticInstance mesh1 = { &newScene, &newShader, planeIndex, boxIndex };
+    //mesh1.move({ -6.5f, 0.0f, -1.5f });
     //graphics::staticInstance mesh2 = { &newScene, &newShader, monkeyIndex, boxIndex };
     //mesh2.move({ -6.5f, 0.0f, 1.5f });
 
-    graphics::oldmesh oldmesh("../meshes/cube.obj", oldShader.ID, 0);
+    oldgraphics::mesh oldmesh("../meshes/cube.obj", oldShader.ID, 0);
     oldmesh.move({ -6.5f, 0.0f, 1.5f });
 
 
@@ -156,7 +156,7 @@ int main()
         mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
         */
 
-        mesh1.draw();
+        //mesh1.draw();
         //mesh2.draw();
         oldmesh.draw();
 

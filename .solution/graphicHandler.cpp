@@ -1,73 +1,6 @@
 #include "graphicHandler.h"
 
-static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragmentFilepath) {
-	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
-	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
-
-	if (filepaths.size() > 4) {
-		assert(false);
-	}
-
-	std::vector<GLuint> shaders;
-	shaders.reserve(filepaths.size());
-	for (int i = 0; i < filepaths.size(); ++i) {
-		std::ifstream text(filepaths[i]);
-		if (!text.is_open()) {
-			std::cout << filepaths[i] << "\ndoesn't exist";
-			assert(false);
-		}
-
-		std::stringstream buffer;
-		buffer << text.rdbuf();
-		std::string temp = buffer.str();
-		const char* shaderText = temp.c_str();
-		text.close();
-
-		GLuint newShader = glCreateShader(types[i]);
-		glShaderSource(newShader, 1, &shaderText, NULL);
-		glCompileShader(newShader);
-
-		int result;
-		glGetShaderiv(newShader, GL_COMPILE_STATUS, &result);
-		if (!result) {
-			char errLog[512];
-			glGetShaderInfoLog(newShader, 512, NULL, errLog);
-			std::cout << errLog << "\n";
-			assert(false);
-		}
-
-		glAttachShader(*ID, newShader);
-	}
-
-	glLinkProgram(*ID);
-
-	for (int i = 0; i < shaders.size(); ++i) {
-		glDetachShader(*ID, shaders[i]);
-		glDeleteShader(shaders[i]);
-	}
-}
-
-graphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
-	loadShader(&ID, vertexFilepath, fragmentFilepath);
-
-	static const GLuint loc0 = glGetUniformLocation(ID, "scale");
-    static const GLuint loc1 = glGetUniformLocation(ID, "rotation");
-    static const GLuint loc2 = glGetUniformLocation(ID, "translation");
-    static const GLuint loc3 = glGetUniformLocation(ID, "proj");
-
-	uniformLocations.push_back(loc0);
-	uniformLocations.push_back(loc1);
-	uniformLocations.push_back(loc2);
-	uniformLocations.push_back(loc3);
-}
-
-graphics::staticShader::~staticShader() {
-	if (ID) { glDeleteProgram(ID); }
-}
-
-
-
-graphics::oldshader::oldshader(std::string vertexFilepath, std::string fragmentFilepath) { // maybe change so input argument is just one vector?
+oldgraphics::shader::shader(std::string vertexFilepath, std::string fragmentFilepath) { // maybe change so input argument is just one vector?
 	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
 	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 
@@ -114,7 +47,7 @@ graphics::oldshader::oldshader(std::string vertexFilepath, std::string fragmentF
 	}
 }
 
-graphics::oldshader::~oldshader() {
+oldgraphics::shader::~shader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
@@ -131,7 +64,7 @@ static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, 
 	}
 }
 
-int graphics::oldmesh::readObj(std::string filepath) { // this code is CRAP CRAP CRAP!!! must fix
+int oldgraphics::mesh::readObj(std::string filepath) { // this code is CRAP CRAP CRAP!!! must fix
 
 	std::vector<float> vertexPos;
 	std::vector<float> vertexNor;
@@ -201,7 +134,7 @@ int graphics::oldmesh::readObj(std::string filepath) { // this code is CRAP CRAP
 	return 0;
 }
 
-graphics::oldmesh::oldmesh(std::string filepath, GLuint shader, GLuint texture) : shaderID{ shader }, textureID{ texture } {
+oldgraphics::mesh::mesh(std::string filepath, GLuint shader, GLuint texture) : shaderID{ shader }, textureID{ texture } {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
@@ -241,12 +174,12 @@ graphics::oldmesh::oldmesh(std::string filepath, GLuint shader, GLuint texture) 
 	glEnableVertexAttribArray(2);
 }
 
-graphics::oldmesh::~oldmesh() {
+oldgraphics::mesh::~mesh() {
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
 }
 
-void graphics::oldmesh::draw() {
+void oldgraphics::mesh::draw() {
 	glUseProgram(shaderID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -267,6 +200,90 @@ void graphics::oldmesh::draw() {
 }
 
 
+void oldgraphics::location::rotate(std::initializer_list<float> rot) {
+	if (rot.size() == 3) {
+		std::move(rot.begin(), rot.end(), orientation);
+		rotation = graphics::createEulerRotation(orientation);
+	}
+}
+
+void oldgraphics::location::move(std::initializer_list<float> pos) {
+	if (pos.size() == 3) {
+		std::move(pos.begin(), pos.end(), position);
+		translation = graphics::createTranslation(position);
+	}
+}
+
+void oldgraphics::location::resize(float factor) {
+	size = factor;
+	scale = graphics::createScale(factor);
+}
+
+
+static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragmentFilepath) {
+	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
+	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+
+	if (filepaths.size() > 4) {
+		assert(false);
+	}
+
+	std::vector<GLuint> shaders;
+	shaders.reserve(filepaths.size());
+	for (int i = 0; i < filepaths.size(); ++i) {
+		std::ifstream text(filepaths[i]);
+		if (!text.is_open()) {
+			std::cout << filepaths[i] << "\ndoesn't exist";
+			assert(false);
+		}
+
+		std::stringstream buffer;
+		buffer << text.rdbuf();
+		std::string temp = buffer.str();
+		const char* shaderText = temp.c_str();
+		text.close();
+
+		GLuint newShader = glCreateShader(types[i]);
+		glShaderSource(newShader, 1, &shaderText, NULL);
+		glCompileShader(newShader);
+
+		int result;
+		glGetShaderiv(newShader, GL_COMPILE_STATUS, &result);
+		if (!result) {
+			char errLog[512];
+			glGetShaderInfoLog(newShader, 512, NULL, errLog);
+			std::cout << errLog << "\n";
+			assert(false);
+		}
+
+		glAttachShader(*ID, newShader);
+	}
+
+	glLinkProgram(*ID);
+
+	for (int i = 0; i < shaders.size(); ++i) {
+		glDetachShader(*ID, shaders[i]);
+		glDeleteShader(shaders[i]);
+	}
+}
+
+graphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
+	loadShader(&ID, vertexFilepath, fragmentFilepath);
+
+	static const GLuint loc0 = glGetUniformLocation(ID, "scale");
+    static const GLuint loc1 = glGetUniformLocation(ID, "rotation");
+    static const GLuint loc2 = glGetUniformLocation(ID, "translation");
+    static const GLuint loc3 = glGetUniformLocation(ID, "proj");
+
+	uniformLocations.push_back(loc0);
+	uniformLocations.push_back(loc1);
+	uniformLocations.push_back(loc2);
+	uniformLocations.push_back(loc3);
+}
+
+graphics::staticShader::~staticShader() {
+	if (ID) { glDeleteProgram(ID); }
+}
 
 //static std::vector<float> readOBJ(std::string meshFilepath) {
 //	std::vector<float> verticies;

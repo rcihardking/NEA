@@ -29,9 +29,9 @@ namespace oldgraphics {
         float orientation[3] = { 0.0f, 0.0f, 0.0f };
         float size = 1.0f;
 
-        mat4 translation = createTranslation(0.0f, 0.0f, 0.0f);
-        mat4 rotation = createEulerRotation(0.0f, 0.0f, 0.0f);
-        mat4 scale = createScale(1.0f);
+        mat4 translation = graphics::createTranslation(0.0f, 0.0f, 0.0f);
+        mat4 rotation = graphics::createEulerRotation(0.0f, 0.0f, 0.0f);
+        mat4 scale = graphics::createScale(1.0f);
 
     public:
         inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
@@ -57,7 +57,7 @@ namespace oldgraphics {
         GLsizei size;
         std::vector<float> verticies;
 
-        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
+        mat4 projection = graphics::createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
 
         int readObj(std::string filepath);
     };
