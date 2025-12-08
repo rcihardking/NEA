@@ -127,31 +127,22 @@ int main()
     mesh2.move({ -1.5f, 0.0f, -6.5f });
     */
 
-    GLuint newvao;
-    glGenVertexArrays(1, &newvao);
-    glBindVertexArray(newvao);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
-	glEnableVertexAttribArray(2);
-
     graphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    graphics::oldshader oldShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::scene newScene;
-    int planeIndex = newScene.loadMesh("../meshes/plane.obj");
+    int planeIndex = newScene.loadMesh("../meshes/cube.obj");
     //int monkeyIndex = newScene.loadMesh("../meshes/monkey.obj", newvao);
 
     int boxIndex = newScene.loadImage("../textures/box.png");
 
     graphics::staticInstance mesh1 = { &newScene, &newShader, planeIndex, boxIndex };
-    //mesh1.move({ -6.5f, 0.0f, -1.5f });
+    mesh1.move({ -6.5f, 0.0f, -1.5f });
     //graphics::staticInstance mesh2 = { &newScene, &newShader, monkeyIndex, boxIndex };
     //mesh2.move({ -6.5f, 0.0f, 1.5f });
+
+    graphics::oldmesh oldmesh("../meshes/cube.obj", oldShader.ID, 0);
+    oldmesh.move({ -6.5f, 0.0f, 1.5f });
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -167,6 +158,7 @@ int main()
 
         mesh1.draw();
         //mesh2.draw();
+        oldmesh.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

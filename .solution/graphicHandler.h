@@ -36,6 +36,37 @@ namespace graphics {
         virtual void resize(float factor);
     };
 
+
+    struct oldshader {
+        const GLuint ID = glCreateProgram();
+
+        oldshader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~oldshader();
+    };
+
+    class oldmesh : public location {
+    public:
+        oldmesh(std::string filepath, GLuint shaderID, GLuint textureID);
+        ~oldmesh();
+        void draw();
+
+    private:
+        GLuint shaderID; // perhaps each scene should be given a shader?
+        GLuint textureID;
+
+        GLuint vao;
+        GLuint vbo;
+        GLsizei size;
+        std::vector<float> verticies;
+
+        mat4 projection = createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f); //need to move this out of each mesh
+
+        int readObj(std::string filepath);
+    };
+
+
+
+
     struct mesh {
         GLuint vbo = 0;
         GLsizei size = 0;

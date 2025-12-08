@@ -114,7 +114,7 @@ graphics::oldshader::oldshader(std::string vertexFilepath, std::string fragmentF
 	}
 }
 
-graphics::oldshader::~shader() {
+graphics::oldshader::~oldshader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
