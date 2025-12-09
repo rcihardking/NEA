@@ -221,6 +221,9 @@ void graphics::location::resize(float factor) {
 
 
 
+
+
+
 static std::vector<float> readOBJ(std::string meshFilepath) {
 	std::vector<float> verticies;
 	std::vector<float> positions;
@@ -441,10 +444,10 @@ int newgraphics::scene::loadImage(std::string imageFilepath) {
 void newgraphics::staticInstance::draw() {
 	if (meshIndex != 0) {
 		glUseProgram(myShader->ID);
-		graphics::mesh* myMesh = &myScene->meshes[meshIndex - 1];
+		newgraphics::mesh* myMesh = &myScene->meshes[meshIndex - 1];
 
 		if (textureIndex != 0) {
-			graphics::texture* myTexture = &myScene->textures[textureIndex - 1];
+			newgraphics::texture* myTexture = &myScene->textures[textureIndex - 1];
 			glBindTexture(GL_TEXTURE_2D, myTexture->image);
 		}
 		glBindVertexArray(myMesh->vao);
@@ -497,18 +500,18 @@ void newgraphics::staticInstance::changeParent(staticInstance* newParent) {
 void newgraphics::location::rotate(std::initializer_list<float> rot) {
 	if (rot.size() == 3) {
 		std::move(rot.begin(), rot.end(), orientation);
-		rotation = createEulerRotation(orientation);
+		rotation = graphics::createEulerRotation(orientation);
 	}
 }
 
 void newgraphics::location::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
-		translation = createTranslation(position);
+		translation = graphics::createTranslation(position);
 	}
 }
 
 void newgraphics::location::resize(float factor) {
 	size = factor;
-	scale = createScale(factor);
+	scale = graphics::createScale(factor);
 }
