@@ -222,7 +222,23 @@ void graphics::location::resize(float factor) {
 
 
 
+newgraphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
+	loadShader(&ID, vertexFilepath, fragmentFilepath);
 
+	static const GLuint loc0 = glGetUniformLocation(ID, "scale");
+	static const GLuint loc1 = glGetUniformLocation(ID, "rotation");
+	static const GLuint loc2 = glGetUniformLocation(ID, "translation");
+	static const GLuint loc3 = glGetUniformLocation(ID, "proj");
+
+	uniformLocations.push_back(loc0);
+	uniformLocations.push_back(loc1);
+	uniformLocations.push_back(loc2);
+	uniformLocations.push_back(loc3);
+}
+
+newgraphics::staticShader::~staticShader() {
+	if (ID) { glDeleteProgram(ID); }
+}
 
 static std::vector<float> readOBJ(std::string meshFilepath) {
 	std::vector<float> verticies;
