@@ -218,3 +218,297 @@ void graphics::location::resize(float factor) {
 	size = factor;
 	scale = createScale(factor);
 }
+
+
+
+static std::vector<float> readOBJ(std::string meshFilepath) {
+	std::vector<float> verticies;
+	std::vector<float> positions;
+	std::vector<float> textures;
+	std::vector<float> normals;
+
+	std::ifstream meshFile(meshFilepath);
+
+	if (!meshFile.is_open()) {
+		return verticies;
+	}
+
+	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
+
+	for (std::string line; std::getline(meshFile, line); ) {
+		std::smatch headerMatch;
+		std::regex_match(line, headerMatch, header);
+		if (headerMatch.size() < 2) {
+			continue;
+		}
+
+		if (headerMatch[1] == "v") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, v);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				positions.push_back(stof(matchObj[i + 1].str()));
+			}
+		}
+		else if (headerMatch[1] == "vt") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, vt);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 2; ++i) {
+				textures.push_back(stof(matchObj[i + 1].str()));
+			}
+		}
+		else if (headerMatch[1] == "vn") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, vn);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				normals.push_back(stof(matchObj[i + 1].str()));
+			}
+		}
+		else if (headerMatch[1] == "f") {
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+			if (matchObj.size() < 2) {
+				assert(false);
+			}
+			std::array<int, 9> indexes;
+			for (int i = 0; i < 9; ++i) {
+				indexes[i] = stoi(matchObj[i + 1].str()) - 1;
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				verticies.push_back(positions[indexes[i * 3]]);
+				verticies.push_back(textures[indexes[i * 3 + 1]]);
+				verticies.push_back(normals[indexes[i * 3 + 2]]);
+			}
+		}
+		else {
+			continue;
+		}
+	}
+
+	return verticies;
+}
+
+int newgraphics::scene::loadMesh(std::string meshFilepath) {
+	mesh newMesh;
+	std::vector<float> verticies = readOBJ(meshFilepath);
+
+	GLuint vao;
+	GLuint vbo;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, verticies.size() * sizeof(float), verticies.data(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	newMesh.size = verticies.size();
+	newMesh.vbo = vbo;
+	newMesh.vao = vao;
+
+	std::cout << newMesh.size << "\n" << newMesh.vao << "\n" << newMesh.vbo << "\n";
+
+	meshes.push_back(newMesh);
+	return meshes.size();
+}
+
+static unsigned char* readPNG(std::string imageFilepath, int* width, int* height) {
+	// checks to ensure file being read exists and is a png
+	FILE* file = fopen(imageFilepath.c_str(), "rb");
+	if (!file) {
+		return nullptr;
+	}
+	unsigned char header[8];
+	if (fread(header, 1, 8, file) != 8) {
+		return nullptr;
+	}
+	static constexpr unsigned char pngSig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+	if (memcmp(header, pngSig, 8) != 0) {
+		return nullptr;
+	}
+
+	// initialising libpng
+	png_structp pngPtr = png_create_read_struct(
+		PNG_LIBPNG_VER_STRING,
+		NULL,
+		NULL,
+		NULL
+	);
+	if (!pngPtr) {
+		fclose(file);
+		return nullptr;
+	}
+	png_infop infoPtr = png_create_info_struct(pngPtr);
+	if (!infoPtr) {
+		png_destroy_read_struct(&pngPtr, NULL, NULL);
+		fclose(file);
+		return nullptr;
+	}
+	if (setjmp(png_jmpbuf(pngPtr))) {
+		png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+		fclose(file);
+		return nullptr;
+	}
+	png_init_io(pngPtr, file);
+	png_set_sig_bytes(pngPtr, 8);
+
+	// reading png and getting important data
+	png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
+	unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
+	int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
+	*width = png_get_image_width(pngPtr, infoPtr);
+	*height = png_get_image_height(pngPtr, infoPtr);
+
+	if (*width * *height > GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE) {
+		std::cout << "texture has exceeded OpenGL max texture size\n";
+		return nullptr;
+	}
+
+	unsigned char* data = new unsigned char[rowBytes * *height];
+
+	// moving data into heap buffer
+	for (int i = 0; i < *height; ++i) {
+		memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
+	}
+
+	// cleanup
+	png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+	fclose(file);
+
+	return data;
+}
+
+int newgraphics::scene::loadImage(std::string imageFilepath) {
+	int width;
+	int height;
+	unsigned char* data = readPNG(imageFilepath, &width, &height);
+	if (data == nullptr) {
+		// need to add expection handling
+		assert(false);
+	}
+
+	texture newTexture;
+
+	glGenTextures(1, &newTexture.image);
+	glBindTexture(GL_TEXTURE_2D, newTexture.image);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	// need to be able to recognise what colour type image is
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	delete[width * height] data;
+
+	textures.push_back(newTexture);
+	return textures.size();
+}
+
+
+
+void newgraphics::staticInstance::draw() {
+	if (meshIndex != 0) {
+		glUseProgram(myShader->ID);
+		graphics::mesh* myMesh = &myScene->meshes[meshIndex - 1];
+
+		if (textureIndex != 0) {
+			graphics::texture* myTexture = &myScene->textures[textureIndex - 1];
+			glBindTexture(GL_TEXTURE_2D, myTexture->image);
+		}
+		glBindVertexArray(myMesh->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
+
+		glUniformMatrix4fv(myShader->uniformLocations[0], 1, true, scale.array);
+		glUniformMatrix4fv(myShader->uniformLocations[1], 1, true, rotation.array);
+		glUniformMatrix4fv(myShader->uniformLocations[2], 1, true, translation.array);
+		glUniformMatrix4fv(myShader->uniformLocations[3], 1, true, myScene->perspective.array);
+
+		glDrawArrays(GL_TRIANGLES, 0, myMesh->size);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	if (children.size() == 0) {
+		return;
+	}
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		staticInstance* child = *it;
+		child->draw();
+	}
+
+}
+
+void newgraphics::staticInstance::removeChild(staticInstance* child) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		if (*it == child) {
+			children.erase(it);
+			return;
+		}
+	}
+	std::cout << "child doesnt exist\n";
+	return;
+}
+
+void newgraphics::staticInstance::addChild(staticInstance* child) {
+	children.push_back(child);
+}
+
+void newgraphics::staticInstance::changeParent(staticInstance* newParent) {
+	if (parent != nullptr) {
+		parent->removeChild(this);
+	}
+	newParent->addChild(this);
+	parent = newParent;
+}
+
+
+
+void newgraphics::location::rotate(std::initializer_list<float> rot) {
+	if (rot.size() == 3) {
+		std::move(rot.begin(), rot.end(), orientation);
+		rotation = createEulerRotation(orientation);
+	}
+}
+
+void newgraphics::location::move(std::initializer_list<float> pos) {
+	if (pos.size() == 3) {
+		std::move(pos.begin(), pos.end(), position);
+		translation = createTranslation(position);
+	}
+}
+
+void newgraphics::location::resize(float factor) {
+	size = factor;
+	scale = createScale(factor);
+}
