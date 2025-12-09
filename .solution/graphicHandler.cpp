@@ -222,6 +222,53 @@ void graphics::location::resize(float factor) {
 
 
 
+static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragmentFilepath) {
+	std::vector<std::string> filepaths = { vertexFilepath, fragmentFilepath };
+	static constexpr GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+
+	if (filepaths.size() > 4) {
+		assert(false);
+	}
+
+	std::vector<GLuint> shaders;
+	shaders.reserve(filepaths.size());
+	for (int i = 0; i < filepaths.size(); ++i) {
+		std::ifstream text(filepaths[i]);
+		if (!text.is_open()) {
+			std::cout << filepaths[i] << "\ndoesn't exist";
+			assert(false);
+		}
+
+		std::stringstream buffer;
+		buffer << text.rdbuf();
+		std::string temp = buffer.str();
+		const char* shaderText = temp.c_str();
+		text.close();
+
+		GLuint newShader = glCreateShader(types[i]);
+		glShaderSource(newShader, 1, &shaderText, NULL);
+		glCompileShader(newShader);
+
+		int result;
+		glGetShaderiv(newShader, GL_COMPILE_STATUS, &result);
+		if (!result) {
+			char errLog[512];
+			glGetShaderInfoLog(newShader, 512, NULL, errLog);
+			std::cout << errLog << "\n";
+			assert(false);
+		}
+
+		glAttachShader(*ID, newShader);
+	}
+
+	glLinkProgram(*ID);
+
+	for (int i = 0; i < shaders.size(); ++i) {
+		glDetachShader(*ID, shaders[i]);
+		glDeleteShader(shaders[i]);
+	}
+}
+
 newgraphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
 	loadShader(&ID, vertexFilepath, fragmentFilepath);
 
@@ -240,83 +287,153 @@ newgraphics::staticShader::~staticShader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
-static std::vector<float> readOBJ(std::string meshFilepath) {
+//static std::vector<float> readOBJ(std::string meshFilepath) {
+//	std::vector<float> verticies;
+//	std::vector<float> positions;
+//	std::vector<float> textures;
+//	std::vector<float> normals;
+//
+//	std::ifstream meshFile(meshFilepath);
+//
+//	if (!meshFile.is_open()) {
+//		return verticies;
+//	}
+//
+//	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
+//	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+//	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
+//
+//	for (std::string line; std::getline(meshFile, line); ) {
+//		std::smatch headerMatch;
+//		std::regex_match(line, headerMatch, header);
+//		if (headerMatch.size() < 2) {
+//			continue;
+//		}
+//
+//		if (headerMatch[1] == "v") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, v);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				positions.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "vt") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, vt);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 2; ++i) {
+//				textures.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "vn") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, vn);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				normals.push_back(stof(matchObj[i + 1].str()));
+//			}
+//		}
+//		else if (headerMatch[1] == "f") {
+//			std::smatch matchObj;
+//			std::regex_match(line, matchObj, f);
+//			if (matchObj.size() < 2) {
+//				assert(false);
+//			}
+//			std::array<int, 9> indexes;
+//			for (int i = 0; i < 9; ++i) {
+//				indexes[i] = stoi(matchObj[i + 1].str()) - 1;
+//			}
+//
+//			for (int i = 0; i < 3; ++i) {
+//				verticies.push_back(positions[indexes[i * 3]]);
+//				verticies.push_back(textures[indexes[i * 3 + 1]]);
+//				verticies.push_back(normals[indexes[i * 3 + 2]]);
+//			}
+//		}
+//		else {
+//			continue;
+//		}
+//	}
+//
+//	return verticies;
+//}
+
+static std::vector<float> readOBJ(std::string filepath) {
 	std::vector<float> verticies;
-	std::vector<float> positions;
-	std::vector<float> textures;
-	std::vector<float> normals;
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
 
-	std::ifstream meshFile(meshFilepath);
-
-	if (!meshFile.is_open()) {
+	std::ifstream obj(filepath);
+	if (!obj.is_open()) {
 		return verticies;
 	}
 
-	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
 	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
 	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex f("f ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*) ([0-9]*)/([0-9]*)/([0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
 
-	for (std::string line; std::getline(meshFile, line); ) {
-		std::smatch headerMatch;
-		std::regex_match(line, headerMatch, header);
-		if (headerMatch.size() < 2) {
-			continue;
-		}
+	for (std::string line; std::getline(obj, line); ) {
+		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
+		case * "v" << sizeof(char) * 8 | *" ": // 30240
+			objRegex(line, v, &vertexPos, 3);
 
-		if (headerMatch[1] == "v") {
-			std::smatch matchObj;
-			std::regex_match(line, matchObj, v);
-			if (matchObj.size() < 2) {
-				assert(false);
-			}
+			break;
 
-			for (int i = 0; i < 3; ++i) {
-				positions.push_back(stof(matchObj[i + 1].str()));
-			}
-		}
-		else if (headerMatch[1] == "vt") {
-			std::smatch matchObj;
-			std::regex_match(line, matchObj, vt);
-			if (matchObj.size() < 2) {
-				assert(false);
-			}
+		case * "v" << sizeof(char) * 8 | *"n": // 30318
+			objRegex(line, vn, &vertexNor, 3);
 
-			for (int i = 0; i < 2; ++i) {
-				textures.push_back(stof(matchObj[i + 1].str()));
-			}
-		}
-		else if (headerMatch[1] == "vn") {
-			std::smatch matchObj;
-			std::regex_match(line, matchObj, vn);
-			if (matchObj.size() < 2) {
-				assert(false);
-			}
+			break;
 
-			for (int i = 0; i < 3; ++i) {
-				normals.push_back(stof(matchObj[i + 1].str()));
-			}
-		}
-		else if (headerMatch[1] == "f") {
+		case * "v" << sizeof(char) * 8 | *"t": // 30324
+			objRegex(line, vt, &vertexTex, 2);
+
+
+			break;
+		case * "f" << sizeof(char) * 8 | *" ": // 26144
 			std::smatch matchObj;
 			std::regex_match(line, matchObj, f);
+
 			if (matchObj.size() < 2) {
-				assert(false);
-			}
-			std::array<int, 9> indexes;
-			for (int i = 0; i < 9; ++i) {
-				indexes[i] = stoi(matchObj[i + 1].str()) - 1;
+				assert(false); // malformed obj file
 			}
 
-			for (int i = 0; i < 3; ++i) {
-				verticies.push_back(positions[indexes[i * 3]]);
-				verticies.push_back(textures[indexes[i * 3 + 1]]);
-				verticies.push_back(normals[indexes[i * 3 + 2]]);
+			std::vector<std::string> str_f;
+			for (int i = 0; i < 3; i++) {
+				str_f.push_back(matchObj[i + 1].str());
 			}
-		}
-		else {
-			continue;
+
+			for (int i = 0; i < 3; i++) {
+				std::smatch faceIndices;
+				std::regex_match(str_f[i], faceIndices, index);
+
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
+
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
+
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
+			}
+
+			break;
 		}
 	}
 
@@ -360,72 +477,72 @@ int newgraphics::scene::loadMesh(std::string meshFilepath) {
 }
 
 static unsigned char* readPNG(std::string imageFilepath, int* width, int* height) {
-	// checks to ensure file being read exists and is a png
-	FILE* file = fopen(imageFilepath.c_str(), "rb");
-	if (!file) {
-		return nullptr;
-	}
-	unsigned char header[8];
-	if (fread(header, 1, 8, file) != 8) {
-		return nullptr;
-	}
-	static constexpr unsigned char pngSig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
-	if (memcmp(header, pngSig, 8) != 0) {
-		return nullptr;
-	}
+		// checks to ensure file being read exists and is a png
+		FILE* file = fopen(imageFilepath.c_str(), "rb");
+		if (!file) {
+			return nullptr;
+		}
+		unsigned char header[8];
+		if (fread(header, 1, 8, file) != 8) {
+			return nullptr;
+		}
+		static constexpr unsigned char pngSig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+		if (memcmp(header, pngSig, 8) != 0) {
+			return nullptr;
+		}
 
-	// initialising libpng
-	png_structp pngPtr = png_create_read_struct(
-		PNG_LIBPNG_VER_STRING,
-		NULL,
-		NULL,
-		NULL
-	);
-	if (!pngPtr) {
-		fclose(file);
-		return nullptr;
-	}
-	png_infop infoPtr = png_create_info_struct(pngPtr);
-	if (!infoPtr) {
-		png_destroy_read_struct(&pngPtr, NULL, NULL);
-		fclose(file);
-		return nullptr;
-	}
-	if (setjmp(png_jmpbuf(pngPtr))) {
+		// initialising libpng
+		png_structp pngPtr = png_create_read_struct(
+			PNG_LIBPNG_VER_STRING,
+			NULL,
+			NULL,
+			NULL
+		);
+		if (!pngPtr) {
+			fclose(file);
+			return nullptr;
+		}
+		png_infop infoPtr = png_create_info_struct(pngPtr);
+		if (!infoPtr) {
+			png_destroy_read_struct(&pngPtr, NULL, NULL);
+			fclose(file);
+			return nullptr;
+		}
+		if (setjmp(png_jmpbuf(pngPtr))) {
+			png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+			fclose(file);
+			return nullptr;
+		}
+		png_init_io(pngPtr, file);
+		png_set_sig_bytes(pngPtr, 8);
+
+		// reading png and getting important data
+		png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
+		unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
+		int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
+		*width = png_get_image_width(pngPtr, infoPtr);
+		*height = png_get_image_height(pngPtr, infoPtr);
+
+		if (*width * *height > GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE) {
+			std::cout << "texture has exceeded OpenGL max texture size\n";
+			return nullptr;
+		}
+
+		unsigned char* data = new unsigned char[rowBytes * *height];
+
+		// moving data into heap buffer
+		for (int i = 0; i < *height; ++i) {
+			memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
+		}
+
+		// cleanup
 		png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
 		fclose(file);
-		return nullptr;
-	}
-	png_init_io(pngPtr, file);
-	png_set_sig_bytes(pngPtr, 8);
 
-	// reading png and getting important data
-	png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
-	unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
-	int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
-	*width = png_get_image_width(pngPtr, infoPtr);
-	*height = png_get_image_height(pngPtr, infoPtr);
-
-	if (*width * *height > GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE) {
-		std::cout << "texture has exceeded OpenGL max texture size\n";
-		return nullptr;
+		return data;
 	}
 
-	unsigned char* data = new unsigned char[rowBytes * *height];
-
-	// moving data into heap buffer
-	for (int i = 0; i < *height; ++i) {
-		memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
-	}
-
-	// cleanup
-	png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
-	fclose(file);
-
-	return data;
-}
-
-int newgraphics::scene::loadImage(std::string imageFilepath) {
+	int newgraphics::scene::loadImage(std::string imageFilepath) {
 	int width;
 	int height;
 	unsigned char* data = readPNG(imageFilepath, &width, &height);

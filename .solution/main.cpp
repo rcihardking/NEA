@@ -92,9 +92,6 @@ int main()
     image newImage("../textures/box.png");
     newImage.createTexture();
 
-    image newImage1("../textures/checkermap_resized.png");
-    newImage1.createTexture();
-
     graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
 
     graphics::mesh mesh1(
@@ -103,6 +100,18 @@ int main()
         newImage.texture
     );
     mesh1.move({ 1.5f, 0.0f, -6.5f });
+
+
+
+    newgraphics::staticShader newerShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+
+    newgraphics::scene newScene;
+
+    int cube = newScene.loadMesh("../meshes/cube.obj");
+    int box = newScene.loadImage("../textures/box.png");
+
+    newgraphics::staticInstance newInstance = { &newScene, &newerShader, cube, box };
+    newInstance.move({ -1.5f, 0.0f, -6.5f });
    
     /*
     graphics::mesh mesh2(
@@ -120,6 +129,9 @@ int main()
 
         mesh1.draw();
         mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
+
+        newInstance.draw();
+        newInstance.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f }); 
         //mesh2.draw();
        // mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
 
