@@ -128,13 +128,11 @@
   <ItemGroup>
     <ClCompile Include="graphicHandler.cpp" />
     <ClCompile Include="graphicMath.cpp" />
-    <ClCompile Include="imageHandler.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graphicHandler.h" />
     <ClInclude Include="graphicMath.h" />
-    <ClInclude Include="imageHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="shaders\fragmentShader.txt" />

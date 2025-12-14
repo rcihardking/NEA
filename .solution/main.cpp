@@ -9,7 +9,6 @@
 #include <chrono>
 #include <iomanip>
 
-#include "imageHandler.h"
 #include "graphicHandler.h"
 #include "graphicMath.h"
 
