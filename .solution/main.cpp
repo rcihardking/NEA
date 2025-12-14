@@ -89,51 +89,31 @@ int main()
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
-    image newImage("../textures/box.png");
-    newImage.createTexture();
-
-    graphics::shader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
-
-    graphics::mesh mesh1(
-        "../meshes/cube.obj",
-        newShader.ID,
-        newImage.texture
-    );
-    mesh1.move({ 1.5f, 0.0f, -6.5f });
-
-
-
     newgraphics::staticShader newerShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
-
     newgraphics::scene newScene;
 
-    int cube = newScene.loadMesh("../meshes/cube.obj");
+    int cube = newScene.loadMesh("../meshes/cube.obj", 0);
+    int monkey = newScene.loadMesh("../meshes/monkey.obj", 0);
     int box = newScene.loadImage("../textures/box.png");
 
-    newgraphics::staticInstance newInstance = { &newScene, &newerShader, cube, box };
-    newInstance.move({ -1.5f, 0.0f, -6.5f });
-   
-    /*
-    graphics::mesh mesh2(
-        "../meshes/cube.obj",
-        newShader.ID, 
-        newImage.texture
-    );
-    mesh2.move({ -1.5f, 0.0f, -6.5f });
-    */
+    newgraphics::staticInstance instance1 = { &newScene, &newerShader, cube, box };
+    instance1.move({ -1.5f, 0.0f, -6.5f });
+
+    newgraphics::staticInstance instance2 = { &newScene, &newerShader, monkey, box };
+    instance2.move({ 1.5f, 0.0f, -6.5f });
+
+    instance2.changeParent(&instance1);
     
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);
 
-        mesh1.draw();
-        mesh1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
+        instance1.draw();
+        instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
 
-        newInstance.draw();
-        newInstance.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f }); 
-        //mesh2.draw();
-       // mesh2.rotate({ static_cast<float>(glfwGetTime()), 0.0f, 0.0f });
+        //instance2.draw();
+        //instance2.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
 
         glfwSwapBuffers(window);
         glfwPollEvents();

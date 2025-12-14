@@ -11,6 +11,7 @@ struct matrix {
 	float array[h * w] = {};
 	static constexpr int height = h; // so other matrices can be created using width and height
 	static constexpr int width = w;
+	bool identity = false;
 
 	inline matrix() {};
 
@@ -27,6 +28,12 @@ struct matrix {
 	template<class T>
 	inline auto operator* (T other) {
 		static_assert(width == other.height);
+		if (this->identity == true) {
+			return other;
+		}
+		else if (other.identity == true) {
+			return *this;
+		}
 
 		matrix<h, other.width> newMatrix;
 
@@ -47,12 +54,13 @@ typedef matrix<4, 1> vec4;
 typedef matrix<3, 1> vec3;
 
 inline mat4 iden4() {
-	static mat4 newMatrix = { 
+	mat4 newMatrix = { 
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
+	newMatrix.identity = true;
 	return newMatrix;
 };
 

@@ -16,48 +16,6 @@
 #include <array>
 #include <regex>
 
-/*
-namespace graphics {
-    class shader {
-    public:
-        GLuint ID;
-
-        shader(const char* vertFilepath, const char* fragFilepath);
-    private:
-        std::vector<GLuint> shaders;
-
-        GLuint compileShader(const char* filepath, GLenum type);
-        void cleanupShaders();
-    };
-
-    class mesh {
-    public:
-        std::array<float, 3> position;
-        std::array<float, 3> orientation;
-        float factor;
-
-        mesh(GLuint shaderID, const char* filepath, GLuint textureID, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scale);
-        void remove();
-        void draw();
-    private:
-        std::vector<float> verticies;
-
-        GLuint texture = 0;
-
-        int polySize = 3;
-
-        GLuint vbo;
-        
-        GLuint vao;
-        GLuint ebo;
-
-        GLuint shader;
-
-        void parseObj(const char* filepath);
-    };
-}
-*/
-
 namespace graphics {
     struct shader {
         const GLuint ID = glCreateProgram();
@@ -120,10 +78,11 @@ namespace newgraphics {
         float orientation[3] = { 0.0f, 0.0f, 0.0f };
         float size = 1.0f;
 
-        mat4 translation = graphics::createTranslation(0.0f, 0.0f, 0.0f);
-        mat4 rotation = graphics::createEulerRotation(0.0f, 0.0f, 0.0f);
-        mat4 scale = graphics::createScale(1.0f);
+        mat4 translation = iden4();
+        mat4 rotation = iden4();
+        mat4 scale = iden4();
 
+        mat4 transformation = iden4();
     public:
         inline std::array<float, 3> getPosition() { return *reinterpret_cast<std::array<float, 3>*>(position); }
         virtual void move(std::initializer_list<float> pos);
@@ -144,11 +103,20 @@ namespace newgraphics {
         GLuint image;
     };
 
+    /*
+    class camera : public location {
+    public:
+        void rotate(std::initializer_list<float> rot) override;
+        void move(std::initializer_list<float> pos) override;
+        void resize(float factor) override;
+    };
+    */
+
     class scene {
     public:
         //scene();
 
-        int loadMesh(std::string meshFilepath);
+        int loadMesh(std::string meshFilepath, GLuint vao); // vao isnt used currently
         int loadImage(std::string imageFilepath);
 
         mat4 perspective = graphics::createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
@@ -163,13 +131,13 @@ namespace newgraphics {
 
         staticShader(std::string vertexFilepath, std::string fragmentFilepath);
         ~staticShader();
-    };
-
+    }; 
+    // change to use function pointers instead
 
     class staticInstance : public location {
     private:
-        scene* myScene;
-        staticShader* myShader;
+        scene* myScene = nullptr;
+        staticShader* myShader = nullptr;
 
         staticInstance* parent = nullptr;
         std::vector<staticInstance*> children;
@@ -184,8 +152,13 @@ namespace newgraphics {
         inline const std::vector<staticInstance*> getChildren() { return static_cast<const std::vector<staticInstance*>>(children); };
         inline staticInstance* getParent() { return parent; };
 
-        void removeChild(staticInstance* child);
-        void addChild(staticInstance* child);
+        void removeChild(staticInstance* child); // should only be used by changeParent()
+        void addChild(staticInstance* child); // should only be used by changeParent()
         void changeParent(staticInstance* newParent);
+
+        void rotate(std::initializer_list<float> rot) override;
+        void move(std::initializer_list<float> pos) override;
+        void resize(float factor) override;
     };
+    
 }

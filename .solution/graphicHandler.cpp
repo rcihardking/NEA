@@ -269,7 +269,7 @@ static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragm
 	}
 }
 
-newgraphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) {
+newgraphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) { 
 	loadShader(&ID, vertexFilepath, fragmentFilepath);
 
 	static const GLuint loc0 = glGetUniformLocation(ID, "scale");
@@ -440,15 +440,13 @@ static std::vector<float> readOBJ(std::string filepath) {
 	return verticies;
 }
 
-int newgraphics::scene::loadMesh(std::string meshFilepath) {
+int newgraphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	mesh newMesh;
 	std::vector<float> verticies = readOBJ(meshFilepath);
-
-	GLuint vao;
 	GLuint vbo;
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	GLuint newvao;
+	glGenVertexArrays(1, &newvao);
+	glBindVertexArray(newvao);
 
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -468,9 +466,7 @@ int newgraphics::scene::loadMesh(std::string meshFilepath) {
 
 	newMesh.size = verticies.size();
 	newMesh.vbo = vbo;
-	newMesh.vao = vao;
-
-	std::cout << newMesh.size << "\n" << newMesh.vao << "\n" << newMesh.vbo << "\n";
+	newMesh.vao = newvao;
 
 	meshes.push_back(newMesh);
 	return meshes.size();
@@ -542,7 +538,7 @@ static unsigned char* readPNG(std::string imageFilepath, int* width, int* height
 		return data;
 	}
 
-	int newgraphics::scene::loadImage(std::string imageFilepath) {
+int newgraphics::scene::loadImage(std::string imageFilepath) {
 	int width;
 	int height;
 	unsigned char* data = readPNG(imageFilepath, &width, &height);
@@ -565,6 +561,7 @@ static unsigned char* readPNG(std::string imageFilepath, int* width, int* height
 	// need to be able to recognise what colour type image is
 
 	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	delete[width * height] data;
 
@@ -628,12 +625,61 @@ void newgraphics::staticInstance::changeParent(staticInstance* newParent) {
 	parent = newParent;
 }
 
+void newgraphics::staticInstance::rotate(std::initializer_list<float> rot) {
+	if (rot.size() != 3) {
+		return;
+	}
+	std::move(rot.begin(), rot.end(), orientation);
+	rotation = graphics::createEulerRotation(orientation);
+	transformation = transformation * rotation;
+
+	if (children.size() == 0) {
+		return;
+	}
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		staticInstance* child = *it;
+		child->rotate(rot);
+	}
+}
+
+void newgraphics::staticInstance::move(std::initializer_list<float> pos) {
+	if (pos.size() != 3) {
+		return;
+	}
+	std::move(pos.begin(), pos.end(), position);
+	translation = graphics::createTranslation(position);
+	transformation = transformation * translation;
+
+	if (children.size() == 0) {
+		return;
+	}
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		staticInstance* child = *it;
+		child->move(pos);
+	}
+}
+
+void newgraphics::staticInstance::resize(float factor) {
+	size = factor;
+	scale = graphics::createScale(factor);
+	transformation = transformation * scale;
+
+	if (children.size() == 0) {
+		return;
+	}
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		staticInstance* child = *it;
+		child->resize(factor);
+	}
+}
+
 
 
 void newgraphics::location::rotate(std::initializer_list<float> rot) {
 	if (rot.size() == 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = graphics::createEulerRotation(orientation);
+		transformation = transformation * rotation;
 	}
 }
 
@@ -641,10 +687,12 @@ void newgraphics::location::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
 		translation = graphics::createTranslation(position);
+		transformation = transformation * translation;
 	}
 }
 
 void newgraphics::location::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(factor);
+	transformation = transformation * scale;
 }

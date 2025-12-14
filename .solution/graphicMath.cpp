@@ -2,6 +2,10 @@
 
 
 mat4 graphics::createEulerRotation(float x, float y, float z) {
+	if (x == 0.0f && y == 0.0f && z == 0.0f) {
+		return iden4();
+	}
+
 	float cosX = cosf(x);
 	float sinX = sinf(x);
 	float cosY = cosf(y);
@@ -33,6 +37,9 @@ mat4 graphics::createEulerRotation(float rot[3]) {
 	float x = rot[0];
 	float y = rot[1];
 	float z = rot[2];
+	if (x == 0.0f && y == 0.0f && z == 0.0f) {
+		return iden4();
+	}
 
 	float cosX = cosf(x);
 	float sinX = sinf(x);
@@ -74,6 +81,10 @@ mat4 graphics::createPerspective(float fov, float aspect, float near, float far)
 }
 
 mat4 graphics::createTranslation(float x, float y, float z) {
+	if (x == 0.0f && y == 0.0f && z == 0.0f) {
+		return iden4();
+	}
+
 	matrix<4, 4> trans = {
 		1.0f, 0.0f, 0.0f, x,
 		0.0f, 1.0f, 0.0f, y,
@@ -83,16 +94,27 @@ mat4 graphics::createTranslation(float x, float y, float z) {
 	return trans;
 }
 mat4 graphics::createTranslation(float pos[3]) {
+	float x = pos[0];
+	float y = pos[1];
+	float z = pos[2];
+	if (x == 0.0f && y == 0.0f && z == 0.0f) {
+		return iden4();
+	}
+
 	matrix<4, 4> trans = {
-		1.0f, 0.0f, 0.0f, pos[0],
-		0.0f, 1.0f, 0.0f, pos[1],
-		0.0f, 0.0f, 1.0f, pos[2],
+		1.0f, 0.0f, 0.0f, x,
+		0.0f, 1.0f, 0.0f, y,
+		0.0f, 0.0f, 1.0f, z,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	return trans;
 }
 
 mat4 graphics::createScale(float factor) {
+	if (factor == 1.0f) {
+		return iden4();
+	}
+
 	matrix <4, 4> scale = {
 		factor, 0.0f, 0.0f, 0.0f,
 		0.0f, factor, 0.0f, 0.0f,
