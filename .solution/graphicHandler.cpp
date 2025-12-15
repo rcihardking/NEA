@@ -382,6 +382,20 @@ int newgraphics::scene::loadImage(std::string imageFilepath) {
 
 
 
+newgraphics::staticInstance* newgraphics::staticInstance::search(std::string name) {
+	if (identifier == name) {
+		return this;
+	}
+	for (auto it = children.begin(); it != children.end(); ++it) {
+		staticInstance* child = *it;
+		staticInstance* found = child->search(name);
+		if (found != nullptr) {
+			return found;
+		}
+	}
+	return nullptr;
+}
+
 void newgraphics::staticInstance::draw() {
 	if (meshIndex != 0) {
 		glUseProgram(myShader->ID);

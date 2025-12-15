@@ -39,8 +39,6 @@ namespace newgraphics {
     };
 
     struct mesh {
-        std::string identifier;
-
         unsigned int vbo = 0;
         int size = 0;
 
@@ -48,8 +46,6 @@ namespace newgraphics {
     };
 
     struct texture {
-        std::string identifier;
-
         unsigned int image;
     };
 
@@ -87,7 +83,7 @@ namespace newgraphics {
 
     class staticInstance : public location {
     private:
-        //std::string identifier;
+        std::string identifier;
 
         scene* myScene = nullptr;
         staticShader* myShader = nullptr;
@@ -98,7 +94,9 @@ namespace newgraphics {
         int meshIndex;
         int textureIndex;
     public:
-        inline staticInstance(scene* scene, staticShader* shader, int mesh, int texture) : myScene{ scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
+        inline staticInstance(std::string name, scene* scene, staticShader* shader, int mesh, int texture) : identifier{ name }, myScene { scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
+
+        staticInstance* search(std::string name);
 
         void draw();
         //void (*draw)(void) = nullptr;

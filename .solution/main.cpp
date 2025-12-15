@@ -68,13 +68,14 @@ int main()
     int monkey = newScene.loadMesh("../meshes/monkey.obj", 0);
     int box = newScene.loadImage("../textures/box.png");
 
-    newgraphics::staticInstance instance1 = { &newScene, &newerShader, cube, box };
+    newgraphics::staticInstance instance1 = { "cube", &newScene, &newerShader, cube, box};
     instance1.move({ -1.5f, 0.0f, -6.5f });
 
-    newgraphics::staticInstance instance2 = { &newScene, &newerShader, monkey, box };
-    instance2.move({ 1.5f, 0.0f, -6.5f });
-
+    newgraphics::staticInstance instance2 = { "monkey", &newScene, &newerShader, monkey, box};
     instance2.changeParent(&instance1);
+
+    newgraphics::staticInstance* instance2Ptr = instance1.search("monkey");
+    instance2Ptr->move({ 1.5f, 0.0f, -6.5f });
     
 
     while (!glfwWindowShouldClose(window)) {
