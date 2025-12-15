@@ -15,6 +15,7 @@
 #include <vector>
 #include <array>
 #include <regex>
+#include <map>
 
 namespace newgraphics {
     class location {
@@ -38,14 +39,18 @@ namespace newgraphics {
     };
 
     struct mesh {
-        GLuint vbo = 0;
-        GLsizei size = 0;
+        std::string identifier;
 
-        GLuint vao = 0;
+        unsigned int vbo = 0;
+        int size = 0;
+
+        unsigned int vao = 0;
     };
 
-    struct texture { // struct is only here for the sake of extensibility
-        GLuint image;
+    struct texture {
+        std::string identifier;
+
+        unsigned int image;
     };
 
     /*
@@ -70,17 +75,20 @@ namespace newgraphics {
         std::vector<texture> textures;
     };
 
-    struct staticShader {
+    class staticShader {
+    public:
         GLuint ID = glCreateProgram();
-        std::vector<GLuint> uniformLocations;
+        std::vector<unsigned int> uniformLocations;
 
-        staticShader(std::string vertexFilepath, std::string fragmentFilepath);
+        staticShader(std::string vertexFilepath, std::string fragmentFilepath /*, void (*initFunction)(void)*/);
         ~staticShader();
     }; 
     // change to use function pointers instead
 
     class staticInstance : public location {
     private:
+        //std::string identifier;
+
         scene* myScene = nullptr;
         staticShader* myShader = nullptr;
 
@@ -93,6 +101,7 @@ namespace newgraphics {
         inline staticInstance(scene* scene, staticShader* shader, int mesh, int texture) : myScene{ scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
 
         void draw();
+        //void (*draw)(void) = nullptr;
 
         inline const std::vector<staticInstance*> getChildren() { return static_cast<const std::vector<staticInstance*>>(children); };
         inline staticInstance* getParent() { return parent; };

@@ -80,6 +80,77 @@ newgraphics::staticShader::~staticShader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
+//mesh files
+static std::vector<float> readOBJ(std::string filepath) {
+	std::vector<float> verticies;
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
+
+	std::ifstream obj(filepath);
+	if (!obj.is_open()) {
+		return verticies;
+	}
+
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+
+	for (std::string line; std::getline(obj, line); ) {
+		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
+		case * "v" << sizeof(char) * 8 | *" ": // 30240
+			objRegex(line, v, &vertexPos, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"n": // 30318
+			objRegex(line, vn, &vertexNor, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"t": // 30324
+			objRegex(line, vt, &vertexTex, 2);
+
+
+			break;
+		case * "f" << sizeof(char) * 8 | *" ": // 26144
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+
+			if (matchObj.size() < 2) {
+				assert(false); // malformed obj file
+			}
+
+			std::vector<std::string> str_f;
+			for (int i = 0; i < 3; i++) {
+				str_f.push_back(matchObj[i + 1].str());
+			}
+
+			for (int i = 0; i < 3; i++) {
+				std::smatch faceIndices;
+				std::regex_match(str_f[i], faceIndices, index);
+
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
+
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
+
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
+			}
+
+			break;
+		}
+	}
+
+	return verticies;
+}
+
 //static std::vector<float> readOBJ(std::string meshFilepath) {
 //	std::vector<float> verticies;
 //	std::vector<float> positions;
@@ -163,79 +234,89 @@ newgraphics::staticShader::~staticShader() {
 //	return verticies;
 //}
 
-static std::vector<float> readOBJ(std::string filepath) {
-	std::vector<float> verticies;
-	std::vector<float> vertexPos;
-	std::vector<float> vertexNor;
-	std::vector<float> vertexTex;
-
-	std::ifstream obj(filepath);
-	if (!obj.is_open()) {
-		return verticies;
+//image files
+static unsigned char* readPNG(std::string imageFilepath, int* width, int* height) {
+	// checks to ensure file being read exists and is a png
+	FILE* file = fopen(imageFilepath.c_str(), "rb");
+	if (!file) {
+		return nullptr;
+	}
+	unsigned char header[8];
+	if (fread(header, 1, 8, file) != 8) {
+		return nullptr;
+	}
+	static constexpr unsigned char pngSig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+	if (memcmp(header, pngSig, 8) != 0) {
+		return nullptr;
 	}
 
-	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
-	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
-	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+	// initialising libpng
+	png_structp pngPtr = png_create_read_struct(
+		PNG_LIBPNG_VER_STRING,
+		NULL,
+		NULL,
+		NULL
+	);
+	if (!pngPtr) {
+		fclose(file);
+		return nullptr;
+	}
+	png_infop infoPtr = png_create_info_struct(pngPtr);
+	if (!infoPtr) {
+		png_destroy_read_struct(&pngPtr, NULL, NULL);
+		fclose(file);
+		return nullptr;
+	}
+	if (setjmp(png_jmpbuf(pngPtr))) {
+		png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+		fclose(file);
+		return nullptr;
+	}
+	png_init_io(pngPtr, file);
+	png_set_sig_bytes(pngPtr, 8);
 
-	for (std::string line; std::getline(obj, line); ) {
-		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
-		case * "v" << sizeof(char) * 8 | *" ": // 30240
-			objRegex(line, v, &vertexPos, 3);
+	// reading png and getting important data
+	png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
+	unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
+	int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
+	*width = png_get_image_width(pngPtr, infoPtr);
+	*height = png_get_image_height(pngPtr, infoPtr);
 
-			break;
-
-		case * "v" << sizeof(char) * 8 | *"n": // 30318
-			objRegex(line, vn, &vertexNor, 3);
-
-			break;
-
-		case * "v" << sizeof(char) * 8 | *"t": // 30324
-			objRegex(line, vt, &vertexTex, 2);
-
-
-			break;
-		case * "f" << sizeof(char) * 8 | *" ": // 26144
-			std::smatch matchObj;
-			std::regex_match(line, matchObj, f);
-
-			if (matchObj.size() < 2) {
-				assert(false); // malformed obj file
-			}
-
-			std::vector<std::string> str_f;
-			for (int i = 0; i < 3; i++) {
-				str_f.push_back(matchObj[i + 1].str());
-			}
-
-			for (int i = 0; i < 3; i++) {
-				std::smatch faceIndices;
-				std::regex_match(str_f[i], faceIndices, index);
-
-				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
-				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
-				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
-
-				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
-				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
-
-				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
-				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
-				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
-			}
-
-			break;
-		}
+	if (*width * *height > GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE) {
+		std::cout << "texture has exceeded OpenGL max texture size\n";
+		return nullptr;
 	}
 
-	return verticies;
+	unsigned char* data = new unsigned char[rowBytes * *height];
+
+	// moving data into heap buffer
+	for (int i = 0; i < *height; ++i) {
+		memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
+	}
+
+	// cleanup
+	png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
+	fclose(file);
+
+	return data;
 }
+
+typedef std::vector<float> (*readMeshPtr)(std::string);
+std::map<std::string, readMeshPtr> meshExtensions = {
+	{ "obj", &readOBJ }
+};
+
+typedef unsigned char* (*readImagePtr)(std::string, int*, int*);
+std::map<std::string, readImagePtr> imageExtensions = {
+	{ "png", &readPNG }
+};
 
 int newgraphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	mesh newMesh;
-	std::vector<float> verticies = readOBJ(meshFilepath);
+	// get file extension
+	std::string extension = "obj";
+	std::vector<float> verticies = meshExtensions[extension](meshFilepath);
+
 	GLuint vbo;
 	GLuint newvao;
 	glGenVertexArrays(1, &newvao);
@@ -265,76 +346,13 @@ int newgraphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	return meshes.size();
 }
 
-static unsigned char* readPNG(std::string imageFilepath, int* width, int* height) {
-		// checks to ensure file being read exists and is a png
-		FILE* file = fopen(imageFilepath.c_str(), "rb");
-		if (!file) {
-			return nullptr;
-		}
-		unsigned char header[8];
-		if (fread(header, 1, 8, file) != 8) {
-			return nullptr;
-		}
-		static constexpr unsigned char pngSig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
-		if (memcmp(header, pngSig, 8) != 0) {
-			return nullptr;
-		}
-
-		// initialising libpng
-		png_structp pngPtr = png_create_read_struct(
-			PNG_LIBPNG_VER_STRING,
-			NULL,
-			NULL,
-			NULL
-		);
-		if (!pngPtr) {
-			fclose(file);
-			return nullptr;
-		}
-		png_infop infoPtr = png_create_info_struct(pngPtr);
-		if (!infoPtr) {
-			png_destroy_read_struct(&pngPtr, NULL, NULL);
-			fclose(file);
-			return nullptr;
-		}
-		if (setjmp(png_jmpbuf(pngPtr))) {
-			png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
-			fclose(file);
-			return nullptr;
-		}
-		png_init_io(pngPtr, file);
-		png_set_sig_bytes(pngPtr, 8);
-
-		// reading png and getting important data
-		png_read_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
-		unsigned char** rowPtrs = png_get_rows(pngPtr, infoPtr);
-		int rowBytes = static_cast<int>(png_get_rowbytes(pngPtr, infoPtr));
-		*width = png_get_image_width(pngPtr, infoPtr);
-		*height = png_get_image_height(pngPtr, infoPtr);
-
-		if (*width * *height > GL_MAX_TEXTURE_SIZE * GL_MAX_TEXTURE_SIZE) {
-			std::cout << "texture has exceeded OpenGL max texture size\n";
-			return nullptr;
-		}
-
-		unsigned char* data = new unsigned char[rowBytes * *height];
-
-		// moving data into heap buffer
-		for (int i = 0; i < *height; ++i) {
-			memmove(data + i * rowBytes, rowPtrs[i], rowBytes); // fairly sure this is faster than std::move
-		}
-
-		// cleanup
-		png_destroy_read_struct(&pngPtr, &infoPtr, NULL);
-		fclose(file);
-
-		return data;
-	}
-
 int newgraphics::scene::loadImage(std::string imageFilepath) {
+	//get file extension
+	std::string extension = "png";
+
 	int width;
 	int height;
-	unsigned char* data = readPNG(imageFilepath, &width, &height);
+	unsigned char* data = imageExtensions[extension](imageFilepath, &width, &height);
 	if (data == nullptr) {
 		// need to add expection handling
 		assert(false);
