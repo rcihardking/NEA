@@ -28,6 +28,7 @@ struct matrix {
 	template<class T>
 	inline auto operator* (T other) {
 		static_assert(width == other.height, "attempted to multiply 2 incompatable matrices");
+		// compiler error avoids a runtime crash due to a programmer error
 		if (this->identity == true) {
 			return other;
 		}

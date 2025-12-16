@@ -37,10 +37,9 @@ void error_callback(int error, const char* desc) {
     std::cout << error << " " << desc << std::endl;
 }
 
-int main()
-{
+GLFWwindow* initGL() {
     if (!glfwInit()) {
-        return -1;
+        return nullptr;
     }
 
     glfwSetErrorCallback(error_callback);
@@ -50,32 +49,41 @@ int main()
     GLFWwindow* window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
     if (!window) {
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
 
     glfwMakeContextCurrent(window);
     if (!gladLoadGL()) {
-        return -1;
+        glfwTerminate();
+        return nullptr;
     }
     glfwSetKeyCallback(window, keyCallback);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
-    newgraphics::staticShader newerShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    return window;
+}
+
+int main()
+{
+    GLFWwindow* window = initGL();
+
+    newgraphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
     newgraphics::scene newScene;
 
     int cube = newScene.loadMesh("../meshes/cube.obj", 0);
     int monkey = newScene.loadMesh("../meshes/monkey.obj", 0);
     int box = newScene.loadImage("../textures/box.png");
 
-    newgraphics::staticInstance instance1 = { "cube", &newScene, &newerShader, cube, box};
+    newgraphics::staticInstance instance1 = { "cube", &newScene, &newShader, cube, box};
     instance1.move({ -1.5f, 0.0f, -6.5f });
 
-    newgraphics::staticInstance instance2 = { "monkey", &newScene, &newerShader, monkey, box};
+    newgraphics::staticInstance instance2 = { "monkey", &newScene, &newShader, monkey, box};
     instance2.changeParent(&instance1);
 
     newgraphics::staticInstance* instance2Ptr = instance1.search("monkey");
     instance2Ptr->move({ 1.5f, 0.0f, -6.5f });
+    std::move()
     
 
     while (!glfwWindowShouldClose(window)) {

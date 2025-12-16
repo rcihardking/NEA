@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "graphicMath.h"
+#include "fileHandler.h"
 
 #include <glad/glad.h>
 #include <libpng/png.h>

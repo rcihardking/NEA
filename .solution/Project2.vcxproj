@@ -126,13 +126,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fileHandler.cpp" />
     <ClCompile Include="graphicHandler.cpp" />
     <ClCompile Include="graphicMath.cpp" />
+    <ClCompile Include="hashtable.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="fileHandler.h" />
     <ClInclude Include="graphicHandler.h" />
     <ClInclude Include="graphicMath.h" />
+    <ClInclude Include="hashtable.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="shaders\fragmentShader.txt" />
