@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,6 +12,7 @@
 
 #include "graphicHandler.h"
 #include "graphicMath.h"
+#include "hashtable.h"
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
@@ -83,8 +85,11 @@ int main()
 
     newgraphics::staticInstance* instance2Ptr = instance1.search("monkey");
     instance2Ptr->move({ 1.5f, 0.0f, -6.5f });
-    std::move()
     
+    hashtable<std::string, int> test(5);
+    test.add("test1", 11);
+    std::cout << test.search("test1");
+
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

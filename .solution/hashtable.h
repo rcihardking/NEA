@@ -1,28 +1,75 @@
 #pragma once
 
+#include <string>
+#include <iostream>
+#include <vector>
+
+/*
+probably just have this implemented for characters only
+*/
+
+// currently no hashing (i can think of) algorithm that works for every type
 template<typename T>
+int hash(T key, int s) { exit(0); return 0; };
+
+
+template<typename keyType, typename valType>
 struct hashObject {
-	T value;
+	keyType key;
+	valType value;
 	hashObject* child;
 	hashObject* parent;
 };
 
-template<typename T, int size>
+template<typename keyType, typename valType>
 class hashtable {
 public:
-	inline hashtable() {
-		table = new hashObject[size];
+	const int size;
+
+	inline hashtable(int s) : size{ s } {
+		table.resize(s);
+		occupied.resize(s);
 	};
-	inline ~hashtable() {
-		delete table[size];
-		table = nullptr;
+	inline int add(keyType key, valType val) {  
+		hashObject<keyType, valType> newObject;
+		newObject.key = key;
+		newObject.value = val;
+
+		int keyHash = hash<keyType>(key, size);
+		if (occupied[keyHash] == 0) {
+			table[keyHash] = newObject;
+			occupied[keyHash] = 1;
+			return 0;
+		}
+		hashObject<keyType, valType>* it = &table[keyHash];
+		while (true) {
+			if (it->child == nullptr) {
+				break;
+			}
+			it = it->child;
+		}
+		newObject.parent = it;
+		it->child = &newObject;
+		return 1;
 	};
-	inline int add(T value) {
-		int memaddress = reinterpret_cast<int>(&value);
-		int loc = memaddress % size;
+	inline void remove(keyType key, valType val) { std::cout << "not implemented\n"; };
+	inline valType search(keyType key) {
+		int keyHash = hash<keyType>(key, size);
+		if (occupied[keyHash] == 0) {
+			return 0;
+		}
+		hashObject<keyType, valType>* it = &table[keyHash];
+		while (true) {
+			if (it->key == key) {
+				return it->value;
+			}
+			if (it->child == nullptr) {
+				return 0;
+			}
+			it = it->child;
+		}
 	};
-	inline void remove(T value);
-	inline bool search(T value);
 private:
-	hashObject<T>* table;
+	std::vector<hashObject<keyType, valType>> table;
+	std::vector<int> occupied = { 0 };
 };
