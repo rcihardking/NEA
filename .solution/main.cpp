@@ -86,9 +86,9 @@ int main()
     newgraphics::staticInstance* instance2Ptr = instance1.search("monkey");
     instance2Ptr->move({ 1.5f, 0.0f, -6.5f });
     
-    hashtable<std::string, int> test(5);
-    test.add("test1", 11);
-    std::cout << test.search("test1");
+    hashtable<int> test(5);
+    std::cout << test.add("test", 11) << "\n";
+    std::cout << test.add("zzzR", 12) << "\n";
 
 
     while (!glfwWindowShouldClose(window)) {
