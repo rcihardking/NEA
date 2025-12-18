@@ -70,12 +70,12 @@ int main()
 {
     GLFWwindow* window = initGL();
 
-    newgraphics::staticShader newShader = { "../shaders/vertexShader.txt", "../shaders/fragmentShader.txt" };
+    newgraphics::staticShader newShader = { "shaders/vertexShader.txt", "shaders/fragmentShader.txt" };
     newgraphics::scene newScene;
 
-    int cube = newScene.loadMesh("../meshes/cube.obj", 0);
-    int monkey = newScene.loadMesh("../meshes/monkey.obj", 0);
-    int box = newScene.loadImage("../textures/box.png");
+    int cube = newScene.loadMesh("meshes/cube.obj", 0);
+    int monkey = newScene.loadMesh("meshes/monkey.obj", 0);
+    int box = newScene.loadImage("textures/box.png");
 
     newgraphics::staticInstance instance1 = { "cube", &newScene, &newShader, cube, box};
     instance1.move({ -1.5f, 0.0f, -6.5f });
@@ -86,11 +86,6 @@ int main()
     newgraphics::staticInstance* instance2Ptr = instance1.search("monkey");
     instance2Ptr->move({ 1.5f, 0.0f, -6.5f });
     
-    hashtable<int> test(5);
-    std::cout << test.add("test", 11) << "\n";
-    std::cout << test.add("zzzR", 12) << "\n";
-
-
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(48.0f / 255.0f, 213.0f / 255.0f, 200.0f / 255.0f, 1.0f);

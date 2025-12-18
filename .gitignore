@@ -1,11 +1,14 @@
-﻿/.solution/Project2/*
-/.solution/Project2
+﻿/solution/Project2/*
+/solution/Project2
 
-/.solution/Debug/*
-/.solution/Debug
+/solution/Debug/*
+/solution/Debug
 
-/.solution/x64/*
-/.solution/x64
+/solution/Release/*
+/solution/Release
+
+/solution/x64/*
+/solution/x64
 
 /.vs/*
 /.vs
