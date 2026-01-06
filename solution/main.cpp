@@ -35,6 +35,22 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
             currentScene->currentCamera.move(newPos);
         }
             break;
+        case GLFW_KEY_A:
+        {
+            vec3 moveAmount = { -1.0f, 0.0f, 0.0f };
+            vec3 camPos = currentScene->currentCamera.getPosition();
+            vec3 newPos = moveAmount + camPos;
+            currentScene->currentCamera.move(newPos);
+        }
+            break;
+        case GLFW_KEY_D:
+        {
+            vec3 moveAmount = { 1.0f, 0.0f, 0.0f };
+            vec3 camPos = currentScene->currentCamera.getPosition();
+            vec3 newPos = moveAmount + camPos;
+            currentScene->currentCamera.move(newPos);
+        }
+            break;
         case GLFW_KEY_TAB:
             int polygonMode[2];
             glGetIntegerv(GL_POLYGON_MODE, polygonMode);
