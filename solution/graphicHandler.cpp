@@ -340,6 +340,3 @@ void newgraphics::location::resize(float factor) {
 mat4 newgraphics::location::getTransformation() {
 	return translation * rotation * scale;
 }
-
-
-newgraphics::scene* currentScene = nullptr;

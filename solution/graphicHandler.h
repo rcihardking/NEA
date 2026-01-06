@@ -127,5 +127,3 @@ namespace newgraphics {
 }
 
 void drawImplementation(newgraphics::staticInstance* self);
-
-extern newgraphics::scene* currentScene;

@@ -16,39 +16,51 @@
 #include "hashtable.h"
 #include "licenseChecker.h"
 
+newgraphics::scene* currentScene = nullptr;
+
+void movementKey(vec3 moveAmount) {
+    vec3 camPos = currentScene->currentCamera.getPosition();
+    vec3 newPos = moveAmount + camPos;
+    currentScene->currentCamera.move(newPos);
+}
+
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         switch (key) {
         case GLFW_KEY_W:
         {
             vec3 moveAmount = { 0.0f, 0.0f, -1.0f };
-            vec3 camPos = currentScene->currentCamera.getPosition();
-            vec3 newPos = moveAmount + camPos;
-            currentScene->currentCamera.move(newPos);
+            movementKey(moveAmount);
         }
             break;
         case GLFW_KEY_S:
         {
             vec3 moveAmount = { 0.0f, 0.0f, 1.0f };
-            vec3 camPos = currentScene->currentCamera.getPosition();
-            vec3 newPos = moveAmount + camPos;
-            currentScene->currentCamera.move(newPos);
+            movementKey(moveAmount);
         }
             break;
         case GLFW_KEY_A:
         {
             vec3 moveAmount = { -1.0f, 0.0f, 0.0f };
-            vec3 camPos = currentScene->currentCamera.getPosition();
-            vec3 newPos = moveAmount + camPos;
-            currentScene->currentCamera.move(newPos);
+            movementKey(moveAmount);
         }
             break;
         case GLFW_KEY_D:
         {
             vec3 moveAmount = { 1.0f, 0.0f, 0.0f };
-            vec3 camPos = currentScene->currentCamera.getPosition();
-            vec3 newPos = moveAmount + camPos;
-            currentScene->currentCamera.move(newPos);
+            movementKey(moveAmount);
+        }
+            break;
+        case GLFW_KEY_E:
+        {
+            vec3 moveAmount = { 0.0f, 1.0f, 0.0f };
+            movementKey(moveAmount);
+        }
+            break;
+        case GLFW_KEY_Q:
+        {
+            vec3 moveAmount = { 0.0f, -1.0f, 0.0f };
+            movementKey(moveAmount);
         }
             break;
         case GLFW_KEY_TAB:
