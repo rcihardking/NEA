@@ -15,7 +15,6 @@ static inline std::string getExt(std::string filepath) { // returns the file ext
 
 
 
-
 // images
 static unsigned char* readPNG(std::string imageFilepath, int* width, int* height) {
 	// checks to ensure file being read exists and is a png
@@ -90,10 +89,6 @@ std::map<std::string, readImagePtr> readimgFunctions = {
 
 unsigned char* file::readImage(std::string filepath, int* width, int* height) {
 	std::string ext = getExt(filepath);
-	if (ext == "") {
-		assert(false);
-		//ADD EXCEPTION HANDLER!!!
-	}
 
 	if (readimgFunctions.find(ext) == readimgFunctions.end()) { // file extension is not a supported image type
 		return nullptr;
@@ -286,4 +281,25 @@ std::vector<float> file::readMesh(std::string filepath) {
 	}
 
 	return readmeshFunctions[ext](filepath);
+}
+
+namespace graphics_TEST {
+	struct mesh {
+		unsigned int vao;
+		//unsigned int vbo;
+		unsigned int ebo;
+
+		int offset;
+		int size;
+	};
+
+	struct texture {
+		unsigned int image;
+	};
+
+	mesh loadMesh(std::vector<float> verticies);
+}
+
+graphics_TEST::mesh graphics_TEST::loadMesh(std::vector<float> verticies) {
+
 }
