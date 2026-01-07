@@ -16,7 +16,7 @@
 #include "hashtable.h"
 #include "licenseChecker.h"
 
-newgraphics::scene* currentScene = nullptr;
+graphics::scene* currentScene = nullptr;
 
 void movementKey(vec3 moveAmount) {
     vec3 camPos = currentScene->currentCamera.getPosition();
@@ -117,21 +117,21 @@ int main()
     std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com");
     GLFWwindow* window = initGL();
 
-    newgraphics::staticShader newShader = { "shaders/vertexShader.txt", "shaders/fragmentShader.txt" };
-    newgraphics::scene newScene;
+    graphics::shader newShader = { "shaders/vertexShader.txt", "shaders/fragmentShader.txt" };
+    graphics::scene newScene;
     currentScene = &newScene;
 
     int cube = newScene.loadMesh("meshes/bettercube.obj", 0);
     int monkey = newScene.loadMesh("meshes/monkey.obj", 0);
     int box = newScene.loadImage("textures/box.png");
 
-    newgraphics::staticInstance instance1 = { "cube", &newScene, &newShader, cube, box};
+    graphics::instance instance1 = { "cube", &newScene, &newShader, cube, box};
 
     vec3 test = { -1.5f, 0.0f, -6.5f };
     instance1.move(test);
     instance1.drawImplementation = &drawImplementation;
 
-    newgraphics::staticInstance instance2 = { "monkey", &newScene, &newShader, monkey, box};
+    graphics::instance instance2 = { "monkey", &newScene, &newShader, monkey, box};
     instance2.changeParent(&instance1);
     instance2.move({ 1.5f, 0.0f, -6.5f });
     

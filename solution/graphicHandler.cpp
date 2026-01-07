@@ -47,15 +47,15 @@ static void loadShader(GLuint* ID, std::string vertexFilepath, std::string fragm
 	}
 }
 
-newgraphics::staticShader::staticShader(std::string vertexFilepath, std::string fragmentFilepath) { 
+graphics::shader::shader(std::string vertexFilepath, std::string fragmentFilepath) { 
 	loadShader(&ID, vertexFilepath, fragmentFilepath);
 }
 
-newgraphics::staticShader::~staticShader() {
+graphics::shader::~shader() {
 	if (ID) { glDeleteProgram(ID); }
 }
 
-int newgraphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
+int graphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	mesh newMesh;
 	std::vector<float> verticies = file::readMesh(meshFilepath);
 
@@ -88,7 +88,7 @@ int newgraphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
 	return meshes.size();
 }
 
-int newgraphics::scene::loadImage(std::string imageFilepath) {
+int graphics::scene::loadImage(std::string imageFilepath) {
 	int width, height;
 	unsigned char* data = file::readImage(imageFilepath, &width, &height);
 	if (data == nullptr) {
@@ -120,13 +120,13 @@ int newgraphics::scene::loadImage(std::string imageFilepath) {
 
 
 
-newgraphics::staticInstance* newgraphics::staticInstance::search(std::string name) {
+graphics::instance* graphics::instance::search(std::string name) {
 	if (identifier == name) {
 		return this;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
-		staticInstance* found = child->search(name);
+		instance* child = *it;
+		instance* found = child->search(name);
 		if (found != nullptr) {
 			return found;
 		}
@@ -134,13 +134,13 @@ newgraphics::staticInstance* newgraphics::staticInstance::search(std::string nam
 	return nullptr;
 }
 
-void drawImplementation(newgraphics::staticInstance* self) {
+void drawImplementation(graphics::instance* self) {
 	if (self->meshIndex != 0) {
 		glUseProgram(self->myShader->ID);
-		newgraphics::mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
+		graphics::mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
 
 		if (self->textureIndex != 0) {
-			newgraphics::texture* myTexture = &self->myScene->textures[self->textureIndex - 1];
+			graphics::texture* myTexture = &self->myScene->textures[self->textureIndex - 1];
 			glBindTexture(GL_TEXTURE_2D, myTexture->image);
 		}
 		glBindVertexArray(myMesh->vao);
@@ -162,17 +162,17 @@ void drawImplementation(newgraphics::staticInstance* self) {
 		glDrawArrays(GL_TRIANGLES, 0, myMesh->size);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	const std::vector<newgraphics::staticInstance*> children = self->getChildren();
+	const std::vector<graphics::instance*> children = self->getChildren();
 	if (children.size() == 0) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		newgraphics::staticInstance* child = *it;
+		graphics::instance* child = *it;
 		child->draw();
 	}
 }
 
-void newgraphics::staticInstance::draw() {
+void graphics::instance::draw() {
 	if (drawImplementation == nullptr) {
 		drawImplementation = this->parent->drawImplementation;
 		if (drawImplementation == nullptr) {
@@ -185,13 +185,13 @@ void newgraphics::staticInstance::draw() {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->draw();
 	}
 }
 
 
-void newgraphics::staticInstance::changeParent(staticInstance* newParent) {
+void graphics::instance::changeParent(instance* newParent) {
 	if (parent != nullptr) {
 		for (auto it = parent->children.begin(); it != parent->children.end(); ++it) {
 			if (*it == this) {
@@ -204,7 +204,7 @@ void newgraphics::staticInstance::changeParent(staticInstance* newParent) {
 	parent = newParent;
 }
 
-void newgraphics::staticInstance::rotate(std::initializer_list<float> rot) {
+void graphics::instance::rotate(std::initializer_list<float> rot) {
 	if (rot.size() != 3) {
 		return;
 	}
@@ -215,12 +215,12 @@ void newgraphics::staticInstance::rotate(std::initializer_list<float> rot) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->rotate(rot);
 	}
 }
 
-void newgraphics::staticInstance::rotate(vec3 rot) {
+void graphics::instance::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(orientation);
 
@@ -228,12 +228,12 @@ void newgraphics::staticInstance::rotate(vec3 rot) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->rotate(rot);
 	}
 }
 
-void newgraphics::staticInstance::move(std::initializer_list<float> pos) {
+void graphics::instance::move(std::initializer_list<float> pos) {
 	if (pos.size() != 3) {
 		return;
 	}
@@ -244,12 +244,12 @@ void newgraphics::staticInstance::move(std::initializer_list<float> pos) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->move(pos);
 	}
 }
 
-void newgraphics::staticInstance::move(vec3 pos) {
+void graphics::instance::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createTranslation(position);
 
@@ -257,12 +257,12 @@ void newgraphics::staticInstance::move(vec3 pos) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->move(pos);
 	}
 }
 
-void newgraphics::staticInstance::resize(float factor) {
+void graphics::instance::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(factor);
 
@@ -270,73 +270,73 @@ void newgraphics::staticInstance::resize(float factor) {
 		return;
 	}
 	for (auto it = children.begin(); it != children.end(); ++it) {
-		staticInstance* child = *it;
+		instance* child = *it;
 		child->resize(factor);
 	}
 }
 
 
 
-void newgraphics::camera::rotate(std::initializer_list<float> rot) {
+void graphics::camera::rotate(std::initializer_list<float> rot) {
 	if (rot.size() != 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = graphics::createEulerRotation(-orientation[0], -orientation[1], -orientation[2]);
 	}
 }
 
-void newgraphics::camera::rotate(vec3 rot) {
+void graphics::camera::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(-orientation[0], -orientation[1], -orientation[2]);
 }
 
-void newgraphics::camera::move(std::initializer_list<float> pos) {
+void graphics::camera::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
 		translation = graphics::createTranslation(-position[0], -position[1], -position[2]);
 	}
 }
 
-void newgraphics::camera::move(vec3 pos) {
+void graphics::camera::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createTranslation(-position[0], -position[1], -position[2]);
 }
 
-void newgraphics::camera::resize(float factor) {
+void graphics::camera::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(-factor);
 }
 
 
 
-void newgraphics::location::rotate(std::initializer_list<float> rot) {
+void graphics::location::rotate(std::initializer_list<float> rot) {
 	if (rot.size() == 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = graphics::createEulerRotation(orientation);
 	}
 }
 
-void newgraphics::location::rotate(vec3 rot) {
+void graphics::location::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(orientation);
 }
 
-void newgraphics::location::move(std::initializer_list<float> pos) {
+void graphics::location::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
 		translation = graphics::createTranslation(position);
 	}
 }
 
-void newgraphics::location::move(vec3 pos) {
+void graphics::location::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createEulerRotation(position);
 }
 
-void newgraphics::location::resize(float factor) {
+void graphics::location::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(factor);
 }
 
-mat4 newgraphics::location::getTransformation() {
+mat4 graphics::location::getTransformation() {
 	return translation * rotation * scale;
 }

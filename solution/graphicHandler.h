@@ -18,7 +18,7 @@
 #include <regex>
 #include <map>
 
-namespace newgraphics {
+namespace graphics {
     class location {
     protected:
         float position[3] = { 0.0f, 0.0f, 0.0f };
@@ -83,33 +83,33 @@ namespace newgraphics {
         std::vector<texture> textures;
     };
 
-    class staticShader {
+    class shader {
     public:
         GLuint ID = glCreateProgram();
 
-        staticShader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~staticShader();
+        shader(std::string vertexFilepath, std::string fragmentFilepath);
+        ~shader();
     }; 
     // change to use function pointers instead
 
-    class staticInstance : public location {
+    class instance : public location {
     private:
         std::string identifier;
     protected:
-        staticInstance* parent = nullptr;
-        std::vector<staticInstance*> children;
+        instance* parent = nullptr;
+        std::vector<instance*> children;
     public:
-        inline staticInstance(std::string name, scene* scene, staticShader* shader, int mesh, int texture) : identifier{ name }, myScene { scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
+        inline instance(std::string name, scene* scene, shader* shader, int mesh, int texture) : identifier{ name }, myScene { scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
 
-        staticInstance* search(std::string name);
+        instance* search(std::string name);
 
         void draw();
-        void (*drawImplementation)(staticInstance*) = nullptr;
+        void (*drawImplementation)(instance*) = nullptr;
 
-        inline const std::vector<staticInstance*> getChildren() { return static_cast<const std::vector<staticInstance*>>(children); };
-        inline staticInstance* getParent() { return parent; };
+        inline const std::vector<instance*> getChildren() { return static_cast<const std::vector<instance*>>(children); };
+        inline instance* getParent() { return parent; };
 
-        void changeParent(staticInstance* newParent);
+        void changeParent(instance* newParent);
 
         void rotate(std::initializer_list<float> rot) override;
         void rotate(vec3 rot) override;
@@ -119,11 +119,11 @@ namespace newgraphics {
 
         // need to move back to private
         scene* myScene = nullptr;
-        staticShader* myShader = nullptr;
+        shader* myShader = nullptr;
 
         int meshIndex;
         int textureIndex;
     };
 }
 
-void drawImplementation(newgraphics::staticInstance* self);
+void drawImplementation(graphics::instance* self);
