@@ -33,7 +33,7 @@
     <ClCompile Include="licenseChecker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fileHandler_NEW.cpp">
+    <ClCompile Include="fileHandler_NEWa.txt">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,7 +53,7 @@
     <ClInclude Include="licenseChecker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fileHandler_NEW.h">
+    <ClInclude Include="fileHandler_NEWh.txt">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

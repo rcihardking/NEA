@@ -4,7 +4,6 @@
 
 #include "graphicMath.h"
 #include "fileHandler.h"
-#include "fileHandler_NEW.h"
 
 #include <glad/glad.h>
 #include <libpng/png.h>

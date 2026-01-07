@@ -14,7 +14,6 @@
 #include "graphicHandler.h"
 #include "graphicMath.h"
 #include "hashtable.h"
-#include "fileHandler_NEW.h"
 #include "licenseChecker.h"
 
 graphics::scene* currentScene = nullptr;
