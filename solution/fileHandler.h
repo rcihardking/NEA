@@ -13,6 +13,8 @@
 #include <glad/glad.h>
 #include <libpng/png.h>
 
+#include "hashtable.h"
+
 namespace file {
 	unsigned char* readImage(std::string filepath, int* width, int* height);
 

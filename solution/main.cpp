@@ -14,6 +14,7 @@
 #include "graphicHandler.h"
 #include "graphicMath.h"
 #include "hashtable.h"
+#include "fileHandler_NEW.h"
 #include "licenseChecker.h"
 
 graphics::scene* currentScene = nullptr;
@@ -125,6 +126,23 @@ int main()
     int monkey = newScene.loadMesh("meshes/monkey.obj", 0);
     int box = newScene.loadImage("textures/box.png");
 
+    //meshLoader meshLoader(3);
+    //meshLoader.createVao = &basicVaoCreater;
+
+    //graphics::mesh cube = meshLoader.loadMesh("meshes/bettercube.obj");
+    //graphics::mesh monkey = meshLoader.loadMesh("meshes/monkey.obj");
+
+    //textureLoader textureLoader(3);
+    //textureLoader.createTexture = &basicTextureCreator;
+
+    //graphics::texture box = textureLoader.loadTexture("textures/box.png");
+
+    //currentScene->meshes.push_back(cube);
+    //currentScene->meshes.push_back(monkey);
+
+    //currentScene->textures.push_back(box);
+
+
     graphics::instance instance1 = { "cube", &newScene, &newShader, cube, box};
 
     vec3 test = { -1.5f, 0.0f, -6.5f };
@@ -134,6 +152,7 @@ int main()
     graphics::instance instance2 = { "monkey", &newScene, &newShader, monkey, box};
     instance2.changeParent(&instance1);
     instance2.move({ 1.5f, 0.0f, -6.5f });
+
     
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

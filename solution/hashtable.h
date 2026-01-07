@@ -22,8 +22,9 @@ template<typename valType>
 class hashtable {
 private:
 	std::vector<hashobject<valType>*> table = { 0 };
-	const int size;
+	int size;
 public:
+	inline hashtable() {};
 	inline hashtable(int s) : size{ s } {
 		table.resize(size);
 	};
@@ -48,6 +49,10 @@ public:
 			}
 		}
 	}
+	inline int resize(int s) { // only use when empty
+		size = s;
+		table.resize(size);
+	}
 	inline int add(std::string key, valType value) {
 		hashobject<valType>* newobject = new hashobject<valType>;
 		newobject->key = key;
@@ -69,18 +74,18 @@ public:
 		}
 		return 2; // failed to add to hashlist due to too many collisions
 	};
-	inline valType get(std::string key) {
+	inline hashobject<valType>* get(std::string key) {
 		int keyHash = hash(key, size);
 		if (table[keyHash] == nullptr) {
-			return NULL;
+			return nullptr;
 		}
 		hashobject<valType>* it = table[keyHash];
 		for (int i = 0; i < 3; ++i) {
 			if (it->key == key) {
-				return it->value;
+				return it;
 			}
 			it = it->child;
 		}
-		return NULL; // past collision limit
+		return nullptr; // past collision limit
 	}
 };

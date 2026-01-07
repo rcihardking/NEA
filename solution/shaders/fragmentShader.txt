@@ -15,9 +15,9 @@ void main()
 
     vec3 unitNormal = normalize(normal);
     vec3 lightDirection = lightPosition - position;
-    lightDirection = normalize(lightDirection);
-    float impact = max(dot(unitNormal, lightDirection), 0.0);
-    vec3 diffuse = impact * vec3(1.0f, 1.0f, 1.0f);
+    float lightDistance = length(lightDirection);
+    float impact = max(dot(unitNormal, normalize(lightDirection)), 0.0);
+    vec3 diffuse = impact * (10/lightDistance) * vec3(1.0f, 1.0f, 1.0f);
 
     FragColor = (ambient + diffuse) * texture(image, UV).rgb;
 }

@@ -282,24 +282,3 @@ std::vector<float> file::readMesh(std::string filepath) {
 
 	return readmeshFunctions[ext](filepath);
 }
-
-namespace graphics_TEST {
-	struct mesh {
-		unsigned int vao;
-		//unsigned int vbo;
-		unsigned int ebo;
-
-		int offset;
-		int size;
-	};
-
-	struct texture {
-		unsigned int image;
-	};
-
-	mesh loadMesh(std::vector<float> verticies);
-}
-
-graphics_TEST::mesh graphics_TEST::loadMesh(std::vector<float> verticies) {
-
-}
