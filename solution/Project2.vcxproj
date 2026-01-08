@@ -127,7 +127,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="fileHandler.cpp" />
-    <ClCompile Include="fileHandler_NEWa.txt" />
     <ClCompile Include="graphicHandler.cpp" />
     <ClCompile Include="graphicMath.cpp" />
     <ClCompile Include="hashtable.cpp" />

@@ -21,3 +21,7 @@ void main()
 
     FragColor = (ambient + diffuse) * texture(image, UV).rgb;
 }
+
+
+
+
