@@ -149,16 +149,20 @@ int main()
     instance1.drawImplementation = &drawImplementation;
 
     graphics::instance instance2 = { "monkey", &newScene, &newShader, monkey, box};
-    instance2.changeParent(&instance1);
+    //instance2.changeParent(&instance1);
     instance2.move({ 1.5f, 0.0f, -6.5f });
 
     
     while (!glfwWindowShouldClose(window)) {
+        unsigned int queries[2];
+        glGenQueries(2, queries);
+        glQueryCounter(queries[0], GL_TIMESTAMP);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
 
         instance1.draw();
-        instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
+        //instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
 
         //newScene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
 
@@ -167,6 +171,14 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        glQueryCounter(queries[1], GL_TIMESTAMP);
+
+        unsigned long long start, stop;
+        glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
+        glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
+
+        std::cout << (stop - start) / 1000000 << "\n";
     }
 
     glfwTerminate();
