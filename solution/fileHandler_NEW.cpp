@@ -117,10 +117,10 @@ template<int size>
 static std::array<float, size> getOBJData(std::string line, std::regex re, bool* flag) {
 	std::array<float, size> datapart = { 0 };
 	std::smatch matchObj;
-	std::regex_match(line, matchObj, v);
+	std::regex_match(line, matchObj, re);
 	if (matchObj.size() < 2) {
 		std::cout << "malformed line\n";
-		flag = true;
+		*flag = true;
 		return datapart;
 	}
 
