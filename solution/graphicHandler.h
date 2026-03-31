@@ -3,10 +3,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "graphicMath.h"
-#include "fileHandler.h"
+#include "fileHandler_NEW.h"
 
 #include <glad/glad.h>
 #include <libpng/png.h>
+#include <glfw/glfw3.h>
 
 #include <iostream>
 #include <string>
@@ -19,6 +20,27 @@
 #include <map>
 
 namespace graphics {
+    class scene {
+    public:
+        scene(instance* rootInstance = nullptr, GLFWwindow* renderingWindow = nullptr);
+        inline void changeRoot(instance* newRoot) {
+            root = newRoot;
+        };
+        inline void changeWindow(GLFWwindow* newWindow) {
+            window = newWindow;
+        };
+        inline void drawScene() {
+            if (root != nullptr && window != nullptr) {
+                root->draw();
+            }
+        };
+
+        camera currentCamera;
+    private:
+        instance* root;
+        GLFWwindow* window;
+    };
+
     class location {
     protected:
         float position[3] = { 0.0f, 0.0f, 0.0f };
@@ -49,18 +71,6 @@ namespace graphics {
         mat4 getTransformation();
     };
 
-    struct texture {
-        unsigned int img = 0;
-    };
-
-    struct mesh {
-        unsigned int vao = 0;
-        unsigned int vbo = 0;
-        //unsigned int ebo = 0;
-        int offset = 0;
-        int size = 0;
-    };
-
     class camera : public location {
     public:
         void rotate(std::initializer_list<float> rot) override;
@@ -68,44 +78,32 @@ namespace graphics {
         void move(std::initializer_list<float> pos) override;
         void move(vec3 rot) override;
         void resize(float factor) override;
+
+        mat4 getPerspective();
+        void changePerspective(float fov, float aspect, float near, float far);
+    private:
+        mat4 perspective;
     };
-
-    class scene {
-    public:
-        //scene();
-
-        int loadMesh(std::string meshFilepath, GLuint vao); // vao isnt used currently
-        int loadImage(std::string imageFilepath);
-
-        mat4 perspective = graphics::createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
-        camera currentCamera;
-
-        std::vector<graphics::mesh> meshes;
-        std::vector<graphics::texture> textures;
-    };
-
-    class shader {
-    public:
-        GLuint ID = glCreateProgram();
-
-        shader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~shader();
-    }; 
-    // change to use function pointers instead
 
     class instance : public location {
     private:
         std::string identifier;
+        scene* myScene = nullptr;
+        mesh myMesh;
+        texture myTexture;
+        shader myShader;
+        void (*drawImplementation)(instance*, scene*, mesh, texture, shader) = nullptr;
+
     protected:
         instance* parent = nullptr;
         std::vector<instance*> children;
+
     public:
-        inline instance(std::string name, scene* scene, shader* shader, int mesh, int texture) : identifier{ name }, myScene { scene }, meshIndex{ mesh }, textureIndex{ texture }, myShader{ shader } {};
+        inline instance(std::string name, scene* scene) : identifier{ name }, myScene { scene } {};
 
         instance* search(std::string name);
 
         void draw();
-        void (*drawImplementation)(instance*) = nullptr;
 
         inline const std::vector<instance*> getChildren() { return static_cast<const std::vector<instance*>>(children); };
         inline instance* getParent() { return parent; };
@@ -117,14 +115,7 @@ namespace graphics {
         void move(std::initializer_list<float> pos) override;
         void move(vec3 pos) override;
         void resize(float factor) override;
-
-        // need to move back to private
-        scene* myScene = nullptr;
-        shader* myShader = nullptr;
-
-        int meshIndex;
-        int textureIndex;
     };
 }
 
-void drawImplementation(graphics::instance* self);
+void drawImplementation(graphics::instance* self, graphics::scene* myScene, mesh myMesh, texture myTexture, shader myShader);

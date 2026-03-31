@@ -53,9 +53,6 @@
     <ClInclude Include="licenseChecker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fileHandler_NEWh.txt">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="fileHandler_NEW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
