@@ -3,8 +3,12 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <array>
 #include <regex>
 #include <initializer_list>
+#include <fstream>
+#include <sstream>
+#include <cmath>
 #include <glad/glad.h>
 #include <libpng/png.h>
 
@@ -26,6 +30,7 @@ struct texture {
 struct mesh {
 	unsigned int vbo;
 	unsigned int vao;
+	unsigned int size;
 	~mesh();	//deconstructor for automatic cleanup
 };
 

@@ -113,16 +113,111 @@ image readPNG(std::string filepath) {
 	return newImage;
 }
 
-std::vector<float> readOBJ(std::string filepath) {
+template<int size>
+static std::array<float, size> getOBJData(std::string line, std::regex re, bool* flag) {
+	std::array<float, size> datapart = { 0 };
+	std::smatch matchObj;
+	std::regex_match(line, matchObj, v);
+	if (matchObj.size() < 2) {
+		std::cout << "malformed line\n";
+		flag = true;
+		return datapart;
+	}
 
+	for (int i = 0; i < size; ++i) {
+		datapart[i] = std::stof(matchObj[i + 1].str());
+	}
+	return datapart;
+}
+
+std::vector<float> readOBJ(std::string filepath) {
+	std::vector<float> vertices;
+	std::ifstream text(filepath);
+	if (!text.is_open()) {
+		std::cout << filepath << "\ndoesn't exist\n";
+		return vertices;
+	}
+
+	static const std::regex header("([a-z]*) ([a-z]|[A-Z]|[0-9]|/|.)*");
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex ind("([0-9]*)/([0-9]*)/([0-9]*)");
+
+	std::vector< std::array<float, 3> > positions;
+	std::vector< std::array<float, 3> > normals;
+	std::vector< std::array<float, 3> > faces;
+	std::vector< std::array<float, 2> > textures;
+
+	bool flag = false;
+	for (std::string line; std::getline(text, line); ) {
+		std::smatch headerMatch;
+		std::regex_match(line, headerMatch, header);
+		if (headerMatch.size() < 2) {
+			continue;
+		}
+
+		if (headerMatch[1] == "v") {
+			positions.push_back(getOBJData<3>(line, v, &flag));
+		}
+		else if (headerMatch[1] == "vt") {
+			textures.push_back(getOBJData<2>(line, vt, &flag));
+		}
+		else if (headerMatch[1] == "vn") {
+			normals.push_back(getOBJData<3>(line, vt, &flag));
+		}
+		else if (headerMatch[1] == "f") {
+			std::array<std::string, 3> facepart;
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+			if (matchObj.size() < 2) {
+				std::cout << "malformed line\n";
+				return vertices;
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				facepart[i] = matchObj[i + 1].str();
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				faces.push_back(getOBJData<3>(facepart[i], ind, &flag));
+			}
+		}
+
+		if (flag) {	//if there is a malformed data line we skip loading the entire mesh
+			return vertices;
+		}
+
+		for (auto it = faces.begin(); it != faces.end(); ++it) {
+			std::array<float, 3> face = *it;
+			for (auto it = positions[face[0]].begin(); it != positions[face[0]].end(); ++it) {
+				vertices.push_back(*it);
+			}
+			for (auto it = textures[face[1]].begin(); it != textures[face[1]].end(); ++it) {
+				vertices.push_back(*it);
+			}
+			for (auto it = normals[face[2]].begin(); it != normals[face[2]].end(); ++it) {
+				vertices.push_back(*it);
+			}
+		}
+
+		return vertices;
+	};
 };
 
 
 texture fileLoader::imageLoader(std::string filepath) {
-	std::string fileExt = getExt(filepath);
-	image newImage = formats.imgFormats[fileExt](filepath);
 	texture newTexture;
 	newTexture.textureID = 0;
+
+	std::string fileExt = getExt(filepath);
+	if (formats.imgFormats.find(fileExt) == formats.imgFormats.end()) {
+		std::cout << "file format not supported\n";
+		return newTexture;
+	}
+
+	image newImage = formats.imgFormats[fileExt](filepath);	//grab image data
 
 	if (newImage.data == nullptr) {	//error has happened when loading image
 		return newTexture;
@@ -153,22 +248,79 @@ texture fileLoader::imageLoader(std::string filepath) {
 }
 
 mesh fileLoader::meshLoader(std::string filepath) {
+	mesh newMesh;
+	newMesh.vao = 0;
+	newMesh.vbo = 0;
 	std::string fileExt = getExt(filepath);
-	std::vector<float> verticies = formats.meshFormats[fileExt](filepath);
+	std::vector<float> vertices = formats.meshFormats[fileExt](filepath);
+
+	if (vertices.size() == 1) {
+		return newMesh; //failed to read obj file
+	}
+
+	glGenVertexArrays(1, &newMesh.vao);
+	glBindVertexArray(newMesh.vao);
+
+	glGenBuffers(1, &newMesh.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // textures
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	newMesh.size = vertices.size();
+	return newMesh;
 }
 
-static void compileShader(std::string filepath, GLenum type);
+//compiles shader parts and returns the opengl id
+static unsigned int compileShader(std::string filepath, GLenum type) {
+	std::ifstream text(filepath);
+	if (!text.is_open()) {
+		std::cout << filepath << "\ndoesn't exist";
+		return 0;
+	}
+
+	std::stringstream buffer;
+	buffer << text.rdbuf();
+	std::string temp = buffer.str();
+	const char* shaderText = temp.c_str();	//extract c string version of the file text
+	text.close();
+
+	unsigned int shaderpart = glCreateShader(type);
+	glShaderSource(shaderpart, 1, &shaderText, NULL);	//send shaderpart text to opengl for compilation
+	glCompileShader(shaderpart);	//compile shader
+
+	int result;
+	glGetShaderiv(shaderpart, GL_COMPILE_STATUS, &result);	//check if shader compiled properly
+	if (!result) {	//output error and cleanup if it didnt
+		char errLog[512];
+		glGetShaderInfoLog(shaderpart, 512, NULL, errLog);
+		std::cout << errLog << "\n";
+		glDeleteShader(shaderpart);
+		return 0;
+	}
+
+	return shaderpart;
+};
 
 shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
-	std::map<std::string, bool> flags = {
+	std::map<std::string, bool> flags = {	//dictionary containing flags if that shader type has been loaded
 		{"vert", false},
 		{"frag", false},
 		{"tess", false},
 		{"geom", false}
 	};
-	std::map<std::string, GLenum> types = {
+	std::map<std::string, GLenum> types = {	//dictionary to get the correct glenum when compiling shader
 		{"vert", GL_VERTEX_SHADER},
 		{"frag", GL_FRAGMENT_SHADER},
 		{"tess", GL_TESS_CONTROL_SHADER},
@@ -189,9 +341,21 @@ shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
 			continue; 
 		}
 
+		unsigned int shaderPart = compileShader(*it, types[fpExt]);	//compile the shader
+		if (shaderPart == 0) {	//an error occured if the returned value is zero
+			continue;
+		}
+
 		flagsIt->second = true;	//set flag to true so we know we already have that type of shader
-		
+		glAttachShader(newShader.shaderID, shaderPart);
+		glDeleteShader(shaderPart);	//shaderpart is no longer needed and wastes memory
+	}
+	for (auto it = flags.begin(); it != flags.end(); ++it) {	//check if any shader part was loaded
+		if (it->second) {
+			return newShader;
+		}
 	}
 
+	std::cout << "No shader part was successfully loaded\n";
 	return newShader;
 }
