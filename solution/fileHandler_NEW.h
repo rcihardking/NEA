@@ -4,13 +4,13 @@
 #include <string>
 #include <vector>
 #include <regex>
-#include <cstdarg>
+#include <initializer_list>
 #include <glad/glad.h>
 #include <libpng/png.h>
 
 
-// defining structs used by functions
-// images
+//defining structs used by functions
+//images
 struct image {
 	unsigned int width;
 	unsigned int height;
@@ -19,22 +19,25 @@ struct image {
 
 struct texture {
 	unsigned int textureID;
+	~texture();	//deconstructor for automatic cleanup
 };
 
 //meshes
 struct mesh {
 	unsigned int vbo;
 	unsigned int vao;
+	~mesh();	//deconstructor for automatic cleanup
 };
 
 //shaders
 struct shader {
 	unsigned int shaderID;
+	~shader();	//deconstructor for automatic cleanup
 };
 
 
 
-// defining our read functions
+//defining our read functions
 //images
 image readPNG(std::string filepath);
 
@@ -44,7 +47,7 @@ std::vector<float> readOBJ(std::string filepath);
 
 
 
-// defining default dictionaries
+//defining default dictionaries
 typedef std::vector<float>(*readMeshPtr)(std::string);
 std::map<std::string, readMeshPtr> default_meshFormatLoaders = {
 	{"obj", &readOBJ}
@@ -57,7 +60,7 @@ std::map<std::string, readImgPtr> default_imageFormatLoaders = {
 
 
 
-// defining file loading classes
+//defining file loading classes
 struct formatLoaders {
 	std::map<std::string, readImgPtr> imgFormats;
 	std::map<std::string, readMeshPtr> meshFormats;
@@ -70,7 +73,7 @@ public:
 
 	texture imageLoader(std::string filepath);
 	mesh meshLoader(std::string filepath);
-	shader shaderLaoder(std::string filepath...);	//variadic func
+	shader shaderLoader(std::initializer_list<std::string> filepaths);	//can take any amount of filepaths
 private:
 	formatLoaders formats;
 };
