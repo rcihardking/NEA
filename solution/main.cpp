@@ -13,6 +13,7 @@
 
 #include "graphicHandler.h"
 #include "graphicMath.h"
+#include "fileHandler_NEW.h"
 #include "hashtable.h"
 #include "licenseChecker.h"
 
@@ -122,16 +123,16 @@ int main()
     formats.meshFormats = default_meshFormatLoaders;
 
     fileLoader newFileloader(formats);
-    mesh monkey = newFileloader.meshLoader("");
-    mesh square = newFileloader.meshLoader("");
-    texture box = newFileloader.imageLoader("");
-    texture checkers = newFileloader.imageLoader("");
+    mesh monkey = newFileloader.meshLoader("meshes/monkey.obj");
+    mesh square = newFileloader.meshLoader("meshes/bettercube.obj");
+    texture box = newFileloader.imageLoader("textures/box.png");
+    texture checkers = newFileloader.imageLoader("textures/checkermap.png");
 
-    shader newShader = newFileloader.shaderLoader({ "", "" });
+    shader newShader = newFileloader.shaderLoader({ "shaders/fragmentShader.frag", "shaders/vertexShader.vert" });
 
     graphics::scene myscene(window);
 
-    graphics::instance instance1("instance1", );
+    graphics::instance instance1("instance1", &myscene, monkey, box, newShader);
 
     
 

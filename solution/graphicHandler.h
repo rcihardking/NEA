@@ -20,29 +20,6 @@
 #include <map>
 
 namespace graphics {
-    class scene {
-    public:
-        scene(GLFWwindow* renderingWindow = nullptr, instance* rootInstance = nullptr) : window{ renderingWindow }, root{ rootInstance } {};
-        inline void changeRoot(instance* newRoot) {
-            root = newRoot;
-        };
-        inline void changeWindow(GLFWwindow* newWindow) {
-            window = newWindow;
-        };
-        inline void drawScene() {
-            if (root != nullptr || window != nullptr) {
-                root->draw();
-                return;
-            }
-            std::cout << "trying to draw with incomplete scene\n";
-        };
-
-        camera currentCamera;
-    private:
-        instance* root;
-        GLFWwindow* window;
-    };
-
     class location {
     protected:
         float position[3] = { 0.0f, 0.0f, 0.0f };
@@ -56,18 +33,18 @@ namespace graphics {
         inline vec3 getPosition() {
             vec3 vector = position;
             return vector;
-        }
+        };
         virtual void move(std::initializer_list<float> pos);
         virtual void move(vec3 pos);
-        inline vec3 getOrientation() { 
-            vec3 vector = orientation; 
+        inline vec3 getOrientation() {
+            vec3 vector = orientation;
             return vector;
-        }
+        };
         virtual void rotate(std::initializer_list<float> rot);
         virtual void rotate(vec3 rot);
-        inline float getSize() { 
-            return size; 
-        }
+        inline float getSize() {
+            return size;
+        };
         virtual void resize(float factor);
 
         mat4 getTransformation();
@@ -101,7 +78,9 @@ namespace graphics {
         std::vector<instance*> children;
 
     public:
-        inline instance(std::string name, scene* scene, mesh model, texture image, shader shad) : identifier{ name }, myScene{ scene }, myMesh{ model }, myTexture{ image }, myShader{ shad } {};
+        inline instance(std::string name, scene* scene, mesh model, texture image, shader shad) : identifier{ name }, myMesh{ model }, myTexture{ image }, myShader{ shad } {
+            myScene = scene;
+        };
 
         instance* search(std::string name);
 
@@ -117,6 +96,29 @@ namespace graphics {
         void move(std::initializer_list<float> pos) override;
         void move(vec3 pos) override;
         void resize(float factor) override;
+    };
+
+    class scene {
+    public:
+        scene(GLFWwindow* renderingWindow = nullptr, instance* rootInstance = nullptr) : window{ renderingWindow }, root{ rootInstance } {};
+        inline void changeRoot(instance* newRoot) {
+            root = newRoot;
+        };
+        inline void changeWindow(GLFWwindow* newWindow) {
+            window = newWindow;
+        };
+        inline void drawScene() {
+            if (root != nullptr || window != nullptr) {
+                root->draw();
+                return;
+            }
+            std::cout << "trying to draw with incomplete scene\n";
+        };
+
+        camera currentCamera;
+    private:
+        instance* root;
+        GLFWwindow* window;
     };
 }
 
