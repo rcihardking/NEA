@@ -126,7 +126,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="fileHandler.cpp" />
     <ClCompile Include="fileHandler_NEW.cpp" />
     <ClCompile Include="graphicHandler.cpp" />
     <ClCompile Include="graphicMath.cpp" />
@@ -135,7 +134,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fileHandler.h" />
     <ClInclude Include="fileHandler_NEW.h" />
     <ClInclude Include="graphicHandler.h" />
     <ClInclude Include="graphicMath.h" />

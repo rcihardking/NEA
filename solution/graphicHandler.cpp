@@ -1,7 +1,7 @@
 #include "graphicHandler.h"
 
 
-graphics::instance* graphics::instance::search(std::string name) {
+instance* instance::search(std::string name) {
 	if (identifier == name) {
 		return this;
 	}
@@ -15,20 +15,21 @@ graphics::instance* graphics::instance::search(std::string name) {
 	return nullptr;
 }
 
-void drawImplementation(graphics::instance* self, graphics::scene* myScene, mesh myMesh, texture myTexture, shader myShader) {
-	if (myMesh.vbo != 0) {
-		glUseProgram(myShader.shaderID);
+void drawImplementation(instance* self,scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader) {
+	std::cout << "drawing\n";
+	if (myMesh->vbo != 0) {
+		glUseProgram(myShader->shaderID);
 
-		if (myTexture.textureID != 0) {
-			glBindTexture(GL_TEXTURE_2D, myTexture.textureID);
+		if (myTexture->textureID != 0) {
+			glBindTexture(GL_TEXTURE_2D, myTexture->textureID);
 		}
-		glBindVertexArray(myMesh.vao);
-		glBindBuffer(GL_ARRAY_BUFFER, myMesh.vbo);
+		glBindVertexArray(myMesh->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
 
-		static const int lightPos = glGetUniformLocation(myShader.shaderID, "lightPosition");
-		static const int trans = glGetUniformLocation(myShader.shaderID, "trans");
-		static const int cam = glGetUniformLocation(myShader.shaderID, "cam");
-		static const int proj = glGetUniformLocation(myShader.shaderID, "proj");
+		static const int lightPos = glGetUniformLocation(myShader->shaderID, "lightPosition");
+		static const int trans = glGetUniformLocation(myShader->shaderID, "trans");
+		static const int cam = glGetUniformLocation(myShader->shaderID, "cam");
+		static const int proj = glGetUniformLocation(myShader->shaderID, "proj");
 		mat4 transformation = self->getTransformation();
 		mat4 camera = myScene->currentCamera.getTransformation();
 
@@ -38,19 +39,23 @@ void drawImplementation(graphics::instance* self, graphics::scene* myScene, mesh
 		glUniformMatrix4fv(cam, 1, true, camera.array);
 		glUniformMatrix4fv(proj, 1, true, myScene->currentCamera.getPerspective().array);
 
-		glDrawArrays(GL_TRIANGLES, 0, myMesh.size);
+		glDrawArrays(GL_TRIANGLES, 0, myMesh->size);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
-void graphics::instance::draw() {
+void instance::draw() {
 	if (drawImplementation == nullptr) {
-		drawImplementation = this->parent->drawImplementation;
-		if (drawImplementation == nullptr) {	//could not find a draw implementation from meshes higher up the tree
+		if (this->parent == nullptr) {
+			std::cout << "could not find a draw implementation\n";
+			return;
+		}
+		if (this->parent->drawImplementation == nullptr) {
 			std::cout << "could not find a draw implementation\n";
 			return;
 		}
 	}
+
 	drawImplementation(this, myScene, myMesh, myTexture, myShader);
 
 	if (children.size() == 0) {
@@ -63,7 +68,7 @@ void graphics::instance::draw() {
 }
 
 
-void graphics::instance::changeParent(instance* newParent) {
+void instance::changeParent(instance* newParent) {
 	if (parent != nullptr) {
 		for (auto it = parent->children.begin(); it != parent->children.end(); ++it) {
 			if (*it == this) {
@@ -76,7 +81,7 @@ void graphics::instance::changeParent(instance* newParent) {
 	parent = newParent;
 }
 
-void graphics::instance::rotate(std::initializer_list<float> rot) {
+void instance::rotate(std::initializer_list<float> rot) {
 	if (rot.size() != 3) {
 		return;
 	}
@@ -92,7 +97,7 @@ void graphics::instance::rotate(std::initializer_list<float> rot) {
 	}
 }
 
-void graphics::instance::rotate(vec3 rot) {
+void instance::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(orientation);
 
@@ -105,7 +110,7 @@ void graphics::instance::rotate(vec3 rot) {
 	}
 }
 
-void graphics::instance::move(std::initializer_list<float> pos) {
+void instance::move(std::initializer_list<float> pos) {
 	if (pos.size() != 3) {
 		return;
 	}
@@ -121,7 +126,7 @@ void graphics::instance::move(std::initializer_list<float> pos) {
 	}
 }
 
-void graphics::instance::move(vec3 pos) {
+void instance::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createTranslation(position);
 
@@ -134,7 +139,7 @@ void graphics::instance::move(vec3 pos) {
 	}
 }
 
-void graphics::instance::resize(float factor) {
+void instance::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(factor);
 
@@ -149,66 +154,69 @@ void graphics::instance::resize(float factor) {
 
 
 
-void graphics::camera::rotate(std::initializer_list<float> rot) {
+void camera::rotate(std::initializer_list<float> rot) {
 	if (rot.size() != 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = graphics::createEulerRotation(-orientation[0], -orientation[1], -orientation[2]);
 	}
 }
 
-void graphics::camera::rotate(vec3 rot) {
+void camera::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(-orientation[0], -orientation[1], -orientation[2]);
 }
 
-void graphics::camera::move(std::initializer_list<float> pos) {
+void camera::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
 		translation = graphics::createTranslation(-position[0], -position[1], -position[2]);
 	}
 }
 
-void graphics::camera::move(vec3 pos) {
+void camera::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createTranslation(-position[0], -position[1], -position[2]);
 }
 
-void graphics::camera::resize(float factor) {
+void camera::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(-factor);
 }
 
+void camera::changePerspective(float fov, float aspect, float n, float f) {
+	perspective = graphics::createPerspective(fov, aspect, f, n);
+}
 
 
-void graphics::location::rotate(std::initializer_list<float> rot) {
+void location::rotate(std::initializer_list<float> rot) {
 	if (rot.size() == 3) {
 		std::move(rot.begin(), rot.end(), orientation);
 		rotation = graphics::createEulerRotation(orientation);
 	}
 }
 
-void graphics::location::rotate(vec3 rot) {
+void location::rotate(vec3 rot) {
 	std::move(rot.array, rot.array + 3, orientation);
 	rotation = graphics::createEulerRotation(orientation);
 }
 
-void graphics::location::move(std::initializer_list<float> pos) {
+void location::move(std::initializer_list<float> pos) {
 	if (pos.size() == 3) {
 		std::move(pos.begin(), pos.end(), position);
 		translation = graphics::createTranslation(position);
 	}
 }
 
-void graphics::location::move(vec3 pos) {
+void location::move(vec3 pos) {
 	std::move(pos.array, pos.array + 3, position);
 	translation = graphics::createEulerRotation(position);
 }
 
-void graphics::location::resize(float factor) {
+void location::resize(float factor) {
 	size = factor;
 	scale = graphics::createScale(factor);
 }
 
-mat4 graphics::location::getTransformation() {
+mat4 location::getTransformation() {
 	return translation * rotation * scale;
 }

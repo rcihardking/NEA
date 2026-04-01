@@ -19,107 +19,100 @@
 #include <regex>
 #include <map>
 
-namespace graphics {
-    class location {
-    protected:
-        float position[3] = { 0.0f, 0.0f, 0.0f };
-        float orientation[3] = { 0.0f, 0.0f, 0.0f };
-        float size = 1.0f;
+class location {
+protected:
+    float position[3] = { 0.0f, 0.0f, 0.0f };
+    float orientation[3] = { 0.0f, 0.0f, 0.0f };
+    float size = 1.0f;
 
-        mat4 translation = iden4();
-        mat4 rotation = iden4();
-        mat4 scale = iden4();
-    public:
-        inline vec3 getPosition() {
-            vec3 vector = position;
-            return vector;
-        };
-        virtual void move(std::initializer_list<float> pos);
-        virtual void move(vec3 pos);
-        inline vec3 getOrientation() {
-            vec3 vector = orientation;
-            return vector;
-        };
-        virtual void rotate(std::initializer_list<float> rot);
-        virtual void rotate(vec3 rot);
-        inline float getSize() {
-            return size;
-        };
-        virtual void resize(float factor);
+    mat4 translation = iden4();
+    mat4 rotation = iden4();
+    mat4 scale = iden4();
+public:
+    inline vec3 getPosition() {
+        vec3 vector = position;
+        return vector;
+    };
+    virtual void move(std::initializer_list<float> pos);
+    virtual void move(vec3 pos);
+    inline vec3 getOrientation() {
+        vec3 vector = orientation;
+        return vector;
+    };
+    virtual void rotate(std::initializer_list<float> rot);
+    virtual void rotate(vec3 rot);
+    inline float getSize() {
+        return size;
+    };
+    virtual void resize(float factor);
 
-        mat4 getTransformation();
+    mat4 getTransformation();
+};
+
+class camera : public location {
+public:
+    void rotate(std::initializer_list<float> rot) override;
+    void rotate(vec3 rot) override;
+    void move(std::initializer_list<float> pos) override;
+    void move(vec3 rot) override;
+    void resize(float factor) override;
+
+    inline mat4 getPerspective() {
+        return perspective;
+    }
+    void changePerspective(float fov, float aspect, float n, float f);
+private:
+    mat4 perspective;
+};
+
+class scene {
+public:
+    scene(GLFWwindow* renderingWindow = nullptr) : window{ renderingWindow } {};
+    inline void changeWindow(GLFWwindow* newWindow) {
+        window = newWindow;
     };
 
-    class camera : public location {
-    public:
-        void rotate(std::initializer_list<float> rot) override;
-        void rotate(vec3 rot) override;
-        void move(std::initializer_list<float> pos) override;
-        void move(vec3 rot) override;
-        void resize(float factor) override;
+    camera currentCamera;
+private:
+    GLFWwindow* window;
+};
 
-        mat4 getPerspective();
-        void changePerspective(float fov, float aspect, float near, float far);
-    private:
-        mat4 perspective;
+class instance : public location {
+private:
+    std::string identifier;
+    scene* myScene;
+    mesh* myMesh;
+    texture* myTexture;
+    shader* myShader;
+
+protected:
+    instance* parent = nullptr;
+    std::vector<instance*> children;
+
+public:
+    inline instance(std::string name, scene* scene, mesh* model, texture* img, shader* shad) {
+        identifier = name;
+        myScene = scene;
+        myMesh = model;
+        myTexture = img;
+        myShader = shad;
     };
 
-    class instance : public location {
-    private:
-        std::string identifier;
-        scene* myScene;
-        mesh myMesh;
-        texture myTexture;
-        shader myShader;
-        void (*drawImplementation)(instance*, scene*, mesh, texture, shader) = nullptr;
+    instance* search(std::string name);
 
-    protected:
-        instance* parent = nullptr;
-        std::vector<instance*> children;
+    void draw();
+    void (*drawImplementation)(instance*, scene*, mesh*, texture*, shader*) = nullptr;
 
-    public:
-        inline instance(std::string name, scene* scene, mesh model, texture image, shader shad) : identifier{ name }, myMesh{ model }, myTexture{ image }, myShader{ shad } {
-            myScene = scene;
-        };
+    inline const std::vector<instance*> getChildren() { return static_cast<const std::vector<instance*>>(children); };
+    inline instance* getParent() { return parent; };
 
-        instance* search(std::string name);
+    void changeParent(instance* newParent);
 
-        void draw();
+    void rotate(std::initializer_list<float> rot) override;
+    void rotate(vec3 rot) override;
+    void move(std::initializer_list<float> pos) override;
+    void move(vec3 pos) override;
+    void resize(float factor) override;
+};
 
-        inline const std::vector<instance*> getChildren() { return static_cast<const std::vector<instance*>>(children); };
-        inline instance* getParent() { return parent; };
-
-        void changeParent(instance* newParent);
-
-        void rotate(std::initializer_list<float> rot) override;
-        void rotate(vec3 rot) override;
-        void move(std::initializer_list<float> pos) override;
-        void move(vec3 pos) override;
-        void resize(float factor) override;
-    };
-
-    class scene {
-    public:
-        scene(GLFWwindow* renderingWindow = nullptr, instance* rootInstance = nullptr) : window{ renderingWindow }, root{ rootInstance } {};
-        inline void changeRoot(instance* newRoot) {
-            root = newRoot;
-        };
-        inline void changeWindow(GLFWwindow* newWindow) {
-            window = newWindow;
-        };
-        inline void drawScene() {
-            if (root != nullptr || window != nullptr) {
-                root->draw();
-                return;
-            }
-            std::cout << "trying to draw with incomplete scene\n";
-        };
-
-        camera currentCamera;
-    private:
-        instance* root;
-        GLFWwindow* window;
-    };
-}
-
-void drawImplementation(graphics::instance* self, graphics::scene* myScene, mesh myMesh, texture myTexture, shader myShader);
+void drawImplementation(instance* self, scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader);

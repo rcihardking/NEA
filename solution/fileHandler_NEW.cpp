@@ -202,9 +202,95 @@ std::vector<float> readOBJ(std::string filepath) {
 			}
 		}
 
+		std::cout << vertices.size() << "\n";
 		return vertices;
 	};
 };
+
+
+static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, int len) {
+	std::smatch matchObj;
+	std::regex_match(line, matchObj, reg);
+
+	if (matchObj.size() < 2) {
+		throw "something went wrong";
+	}
+
+	for (int i = 0; i < len; ++i) {
+		vec->push_back(std::stof(matchObj[i + 1].str()));
+	}
+}
+
+std::vector<float> readOBJ_old(std::string filepath) {
+	std::vector<float> verticies;
+	std::vector<float> vertexPos;
+	std::vector<float> vertexNor;
+	std::vector<float> vertexTex;
+
+	std::ifstream obj(filepath);
+	if (!obj.is_open()) {
+		return verticies;
+	}
+
+	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
+	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
+	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
+
+	for (std::string line; std::getline(obj, line); ) {
+		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
+		case * "v" << sizeof(char) * 8 | *" ": // 30240
+			objRegex(line, v, &vertexPos, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"n": // 30318
+			objRegex(line, vn, &vertexNor, 3);
+
+			break;
+
+		case * "v" << sizeof(char) * 8 | *"t": // 30324
+			objRegex(line, vt, &vertexTex, 2);
+
+
+			break;
+		case * "f" << sizeof(char) * 8 | *" ": // 26144
+			std::smatch matchObj;
+			std::regex_match(line, matchObj, f);
+
+			if (matchObj.size() < 2) {
+				throw "malformed obj file"; // malformed obj file
+			}
+
+			std::vector<std::string> str_f;
+			for (int i = 0; i < 3; i++) {
+				str_f.push_back(matchObj[i + 1].str());
+			}
+
+			for (int i = 0; i < 3; i++) {
+				std::smatch faceIndices;
+				std::regex_match(str_f[i], faceIndices, index);
+
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexPos[(std::stoi(faceIndices[1].str()) - 1) * 3 + 2]);
+
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2]);
+				verticies.push_back(vertexTex[(std::stoi(faceIndices[2].str()) - 1) * 2 + 1]);
+
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 1]);
+				verticies.push_back(vertexNor[(std::stoi(faceIndices[3].str()) - 1) * 3 + 2]);
+			}
+
+			break;
+		}
+	}
+
+	std::cout << verticies.size() << "\n";
+	return verticies;
+}
 
 
 texture fileLoader::imageLoader(std::string filepath) {
@@ -212,12 +298,13 @@ texture fileLoader::imageLoader(std::string filepath) {
 	newTexture.textureID = 0;
 
 	std::string fileExt = getExt(filepath);
-	if (formats.imgFormats.find(fileExt) == formats.imgFormats.end()) {
+	hashobject<readImgPtr>* imgFormat = formats.imgFormats->find(fileExt);
+	if (imgFormat == nullptr) {
 		std::cout << "file format not supported\n";
 		return newTexture;
 	}
 
-	image newImage = formats.imgFormats[fileExt](filepath);	//grab image data
+	image newImage = imgFormat->value(filepath);	//grab image data
 
 	if (newImage.data == nullptr) {	//error has happened when loading image
 		return newTexture;
@@ -252,11 +339,12 @@ mesh fileLoader::meshLoader(std::string filepath) {
 	newMesh.vao = 0;
 	newMesh.vbo = 0;
 	std::string fileExt = getExt(filepath);
-	if (formats.meshFormats.find(fileExt) == formats.meshFormats.end()) {
+	hashobject<readMeshPtr>* meshFormat = formats.meshFormats->find(fileExt);
+	if (meshFormat == nullptr) {
 		std::cout << "unsupported file format\n";
 		return newMesh;
 	}
-	std::vector<float> vertices = formats.meshFormats[fileExt](filepath);
+	std::vector<float> vertices = meshFormat->value(filepath);
 
 	if (vertices.size() == 1) {
 		return newMesh; //failed to read obj file

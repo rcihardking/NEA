@@ -24,9 +24,6 @@
     <ClCompile Include="graphicHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fileHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hashtable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,9 +39,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="graphicHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fileHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hashtable.h">

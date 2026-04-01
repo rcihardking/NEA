@@ -16,15 +16,15 @@
 #include "fileHandler_NEW.h"
 #include "hashtable.h"
 #include "licenseChecker.h"
-
-graphics::scene* currentScene = nullptr;
-
+/*
 void movementKey(vec3 moveAmount) {
     vec3 camPos = currentScene->currentCamera.getPosition();
     vec3 newPos = moveAmount + camPos;
     currentScene->currentCamera.move(newPos);
 }
+*/
 
+/*
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         switch (key) {
@@ -81,6 +81,7 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods
         }
     }
 }
+*/
 
 void error_callback(int error, const char* desc) {
     std::cout << error << " " << desc << std::endl;
@@ -106,7 +107,7 @@ GLFWwindow* initGL() {
         glfwTerminate();
         return nullptr;
     }
-    glfwSetKeyCallback(window, keyCallback);
+    //glfwSetKeyCallback(window, keyCallback);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
@@ -115,27 +116,38 @@ GLFWwindow* initGL() {
 
 int main()
 {
-    std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com");
+    std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com") << "\n";
+
     GLFWwindow* window = initGL();
 
+    hashtable<readImgPtr, 10> default_imageFormatLoaders = {
+        {"png", &readPNG}
+    };
+    hashtable<readMeshPtr, 10> default_meshFormatLoaders = {
+        {"obj", &readOBJ_old}
+    };
     formatLoaders formats;
-    formats.imgFormats = default_imageFormatLoaders;
-    formats.meshFormats = default_meshFormatLoaders;
+    formats.imgFormats = &default_imageFormatLoaders;
+    formats.meshFormats = &default_meshFormatLoaders;
 
     fileLoader newFileloader(formats);
     mesh monkey = newFileloader.meshLoader("meshes/monkey.obj");
     mesh square = newFileloader.meshLoader("meshes/bettercube.obj");
     texture box = newFileloader.imageLoader("textures/box.png");
-    texture checkers = newFileloader.imageLoader("textures/checkermap.png");
+    texture checkers = newFileloader.imageLoader("textures/checkermap_resized.png");
 
     shader newShader = newFileloader.shaderLoader({ "shaders/fragmentShader.frag", "shaders/vertexShader.vert" });
 
-    graphics::scene myscene(window);
+    camera newCam;
+    newCam.changePerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
+    newCam.move({ 2.0f, 2.0f, 0.0f });
 
-    graphics::instance instance1("instance1", &myscene, monkey, box, newShader);
+    scene myscene(window);
+    myscene.currentCamera = newCam;
 
+    instance instance1("instance1", &myscene, &monkey, &box, &newShader);
+    instance1.drawImplementation = &drawImplementation;
     
-
     
     while (!glfwWindowShouldClose(window)) {
         unsigned int queries[2];
@@ -146,6 +158,8 @@ int main()
         glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
 
         
+        instance1.draw();
+
         //instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
 
         //newScene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
@@ -162,9 +176,11 @@ int main()
         glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
         glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
 
-        std::cout << (stop - start) / 1000000 << "\n";
+        //std::cout << (stop - start) / 1000000 << "\n";
     }
 
     glfwTerminate();
+ 
     return 0;
 }
+
