@@ -15,32 +15,30 @@ graphics::instance* graphics::instance::search(std::string name) {
 	return nullptr;
 }
 
-void drawImplementation(graphics::instance* self) {
-	if (self->meshIndex != 0) {
-		glUseProgram(self->myShader->ID);
-		graphics::mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
+void drawImplementation(graphics::instance* self, graphics::scene* myScene, mesh myMesh, texture myTexture, shader myShader) {
+	if (myMesh.vbo != 0) {
+		glUseProgram(myShader.shaderID);
 
-		if (self->textureIndex != 0) {
-			graphics::texture* myTexture = &self->myScene->textures[self->textureIndex - 1];
-			glBindTexture(GL_TEXTURE_2D, myTexture->img);
+		if (myTexture.textureID != 0) {
+			glBindTexture(GL_TEXTURE_2D, myTexture.textureID);
 		}
-		glBindVertexArray(myMesh->vao);
-		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
+		glBindVertexArray(myMesh.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, myMesh.vbo);
 
-		static const int lightPos = glGetUniformLocation(self->myShader->ID, "lightPosition");
-		static const int trans = glGetUniformLocation(self->myShader->ID, "trans");
-		static const int cam = glGetUniformLocation(self->myShader->ID, "cam");
-		static const int proj = glGetUniformLocation(self->myShader->ID, "proj");
+		static const int lightPos = glGetUniformLocation(myShader.shaderID, "lightPosition");
+		static const int trans = glGetUniformLocation(myShader.shaderID, "trans");
+		static const int cam = glGetUniformLocation(myShader.shaderID, "cam");
+		static const int proj = glGetUniformLocation(myShader.shaderID, "proj");
 		mat4 transformation = self->getTransformation();
-		mat4 camera = self->myScene->currentCamera.getTransformation();
+		mat4 camera = myScene->currentCamera.getTransformation();
 
 		float lightPosition[3] = { 5.0f, 5.0f, 5.0f };
 		glUniform3fv(lightPos, 1, lightPosition);
 		glUniformMatrix4fv(trans, 1, true, transformation.array);
 		glUniformMatrix4fv(cam, 1, true, camera.array);
-		glUniformMatrix4fv(proj, 1, true, self->myScene->perspective.array);
+		glUniformMatrix4fv(proj, 1, true, myScene->currentCamera.getPerspective().array);
 
-		glDrawArrays(GL_TRIANGLES, 0, myMesh->size);
+		glDrawArrays(GL_TRIANGLES, 0, myMesh.size);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
@@ -48,11 +46,12 @@ void drawImplementation(graphics::instance* self) {
 void graphics::instance::draw() {
 	if (drawImplementation == nullptr) {
 		drawImplementation = this->parent->drawImplementation;
-		if (drawImplementation == nullptr) {
-			assert(false); // trying to draw without a draw implementation
+		if (drawImplementation == nullptr) {	//could not find a draw implementation from meshes higher up the tree
+			std::cout << "could not find a draw implementation\n";
+			return;
 		}
 	}
-	drawImplementation(this);
+	drawImplementation(this, myScene, myMesh, myTexture, myShader);
 
 	if (children.size() == 0) {
 		return;

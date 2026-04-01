@@ -252,6 +252,10 @@ mesh fileLoader::meshLoader(std::string filepath) {
 	newMesh.vao = 0;
 	newMesh.vbo = 0;
 	std::string fileExt = getExt(filepath);
+	if (formats.meshFormats.find(fileExt) == formats.meshFormats.end()) {
+		std::cout << "unsupported file format\n";
+		return newMesh;
+	}
 	std::vector<float> vertices = formats.meshFormats[fileExt](filepath);
 
 	if (vertices.size() == 1) {
@@ -286,7 +290,7 @@ mesh fileLoader::meshLoader(std::string filepath) {
 static unsigned int compileShader(std::string filepath, GLenum type) {
 	std::ifstream text(filepath);
 	if (!text.is_open()) {
-		std::cout << filepath << "\ndoesn't exist";
+		std::cout << filepath << "\ndoesn't exist\n";
 		return 0;
 	}
 

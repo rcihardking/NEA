@@ -22,7 +22,7 @@
 namespace graphics {
     class scene {
     public:
-        scene(instance* rootInstance = nullptr, GLFWwindow* renderingWindow = nullptr);
+        scene(GLFWwindow* renderingWindow = nullptr, instance* rootInstance = nullptr) : window{ renderingWindow }, root{ rootInstance } {};
         inline void changeRoot(instance* newRoot) {
             root = newRoot;
         };
@@ -30,9 +30,11 @@ namespace graphics {
             window = newWindow;
         };
         inline void drawScene() {
-            if (root != nullptr && window != nullptr) {
+            if (root != nullptr || window != nullptr) {
                 root->draw();
+                return;
             }
+            std::cout << "trying to draw with incomplete scene\n";
         };
 
         camera currentCamera;
@@ -88,7 +90,7 @@ namespace graphics {
     class instance : public location {
     private:
         std::string identifier;
-        scene* myScene = nullptr;
+        scene* myScene;
         mesh myMesh;
         texture myTexture;
         shader myShader;
@@ -99,7 +101,7 @@ namespace graphics {
         std::vector<instance*> children;
 
     public:
-        inline instance(std::string name, scene* scene) : identifier{ name }, myScene { scene } {};
+        inline instance(std::string name, scene* scene, mesh model, texture image, shader shad) : identifier{ name }, myScene{ scene }, myMesh{ model }, myTexture{ image }, myShader{ shad } {};
 
         instance* search(std::string name);
 

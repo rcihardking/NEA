@@ -117,40 +117,23 @@ int main()
     std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com");
     GLFWwindow* window = initGL();
 
-    graphics::shader newShader = { "shaders/vertexShader.txt", "shaders/fragmentShader.txt" };
-    graphics::scene newScene;
-    currentScene = &newScene;
+    formatLoaders formats;
+    formats.imgFormats = default_imageFormatLoaders;
+    formats.meshFormats = default_meshFormatLoaders;
 
-    int cube = newScene.loadMesh("meshes/bettercube.obj", 0);
-    int monkey = newScene.loadMesh("meshes/monkey.obj", 0);
-    int box = newScene.loadImage("textures/box.png");
+    fileLoader newFileloader(formats);
+    mesh monkey = newFileloader.meshLoader("");
+    mesh square = newFileloader.meshLoader("");
+    texture box = newFileloader.imageLoader("");
+    texture checkers = newFileloader.imageLoader("");
 
-    //meshLoader meshLoader(3);
-    //meshLoader.createVao = &basicVaoCreater;
+    shader newShader = newFileloader.shaderLoader({ "", "" });
 
-    //graphics::mesh cube = meshLoader.loadMesh("meshes/bettercube.obj");
-    //graphics::mesh monkey = meshLoader.loadMesh("meshes/monkey.obj");
+    graphics::scene myscene(window);
 
-    //textureLoader textureLoader(3);
-    //textureLoader.createTexture = &basicTextureCreator;
+    graphics::instance instance1("instance1", );
 
-    //graphics::texture box = textureLoader.loadTexture("textures/box.png");
-
-    //currentScene->meshes.push_back(cube);
-    //currentScene->meshes.push_back(monkey);
-
-    //currentScene->textures.push_back(box);
-
-
-    graphics::instance instance1 = { "cube", &newScene, &newShader, cube, box};
-
-    vec3 test = { -1.5f, 0.0f, -6.5f };
-    instance1.move(test);
-    instance1.drawImplementation = &drawImplementation;
-
-    graphics::instance instance2 = { "monkey", &newScene, &newShader, monkey, box};
-    //instance2.changeParent(&instance1);
-    instance2.move({ 1.5f, 0.0f, -6.5f });
+    
 
     
     while (!glfwWindowShouldClose(window)) {
@@ -161,7 +144,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
 
-        instance1.draw();
+        
         //instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
 
         //newScene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
