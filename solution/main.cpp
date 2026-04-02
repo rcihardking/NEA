@@ -8,8 +8,6 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <chrono>
-#include <iomanip>
 
 #include "graphicHandler.h"
 #include "graphicMath.h"
@@ -64,16 +62,15 @@ int main()
     
     while (!glfwWindowShouldClose(newscene.window)) {    //render loop
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
+        glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);  //set background colour to white
 
         
-        instance1.draw();
+        instance1.draw();   //draw instance
 
-        instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f /*static_cast<float>(glfwGetTime())*/});
+        instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f }); //rotates the object in a circle for the runtime of the application
 
 
-        glfwSwapBuffers(newscene.window);
-        glfwPollEvents();
+        glfwSwapBuffers(newscene.window);   //swap to the updated render buffer
     }
 
     glfwTerminate();
