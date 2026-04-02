@@ -139,15 +139,15 @@ int main()
     shader newShader = newFileloader.shaderLoader({ "shaders/fragmentShader.frag", "shaders/vertexShader.vert" });
 
     camera newCam;
-    newCam.changePerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
-    newCam.move({ 2.0f, 2.0f, 0.0f });
+    newCam.changePerspective(toRad(70.0f), 1.0f, 30.0f, 1.0f);
 
     scene myscene(window);
     myscene.currentCamera = newCam;
 
     instance instance1("instance1", &myscene, &monkey, &box, &newShader);
     instance1.drawImplementation = &drawImplementation;
-    
+    instance1.move({ 0.0f, 0.0f, -6.5f });
+    instance1.rotate({ 0.0f, 0.0f, 0.0f });
     
     while (!glfwWindowShouldClose(window)) {
         unsigned int queries[2];

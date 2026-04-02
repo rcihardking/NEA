@@ -405,11 +405,11 @@ static unsigned int compileShader(std::string filepath, GLenum type) {
 };
 
 shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
-	std::map<std::string, bool> flags = {	//dictionary containing flags if that shader type has been loaded
-		{"vert", false},
-		{"frag", false},
-		{"tess", false},
-		{"geom", false}
+	std::map<std::string, int> shaderParts = {	//dictionary containing flags if that shader type has been loaded
+		{"vert", 0},
+		{"frag", 0},
+		{"tess", 0},
+		{"geom", 0}
 	};
 	std::map<std::string, GLenum> types = {	//dictionary to get the correct glenum when compiling shader
 		{"vert", GL_VERTEX_SHADER},
@@ -420,33 +420,35 @@ shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
 
 	shader newShader;
 	newShader.shaderID = glCreateProgram();
+	std::cout << "\n" << newShader.shaderID << "\n";
 
 	for (auto it = filepaths.begin(); it != filepaths.end(); ++it) {
 		std::string fpExt = getExt(*it);
-		
-		auto flagsIt = flags.find(fpExt);	//get iterator of key so we dont have to query for it multiple times
-		if (flagsIt == flags.end()) {	//file extension isnt a recognised shader
+
+		auto spIt = shaderParts.find(fpExt);	//get iterator of key so we dont have to query for it multiple times
+		if (spIt == shaderParts.end()) {	//file extension isnt a recognised shader
 			continue;
 		}
-		if (flagsIt->second) {	//shader of that type already loaded for shader program
-			continue; 
+		if (spIt->second) {	//shader of that type already loaded for shader program
+			continue;
 		}
 
 		unsigned int shaderPart = compileShader(*it, types[fpExt]);	//compile the shader
+		std::cout << types[fpExt] << "\n";
 		if (shaderPart == 0) {	//an error occured if the returned value is zero
 			continue;
 		}
 
-		flagsIt->second = true;	//set flag to true so we know we already have that type of shader
+		spIt->second = shaderPart;
 		glAttachShader(newShader.shaderID, shaderPart);
-		glDeleteShader(shaderPart);	//shaderpart is no longer needed and wastes memory
 	}
-	for (auto it = flags.begin(); it != flags.end(); ++it) {	//check if any shader part was loaded
+
+	glLinkProgram(newShader.shaderID);
+	for (auto it = shaderParts.begin(); it != shaderParts.end(); ++it) {	//check if any shader part was loaded
 		if (it->second) {
-			return newShader;
+			glDeleteShader(it->second);
 		}
 	}
 
-	std::cout << "No shader part was successfully loaded\n";
 	return newShader;
 }

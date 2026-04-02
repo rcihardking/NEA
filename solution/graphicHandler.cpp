@@ -16,7 +16,6 @@ instance* instance::search(std::string name) {
 }
 
 void drawImplementation(instance* self,scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader) {
-	std::cout << "drawing\n";
 	if (myMesh->vbo != 0) {
 		glUseProgram(myShader->shaderID);
 
