@@ -126,7 +126,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="fileHandler_NEW.cpp" />
+    <ClCompile Include="fileHandler.cpp" />
     <ClCompile Include="graphicHandler.cpp" />
     <ClCompile Include="graphicMath.cpp" />
     <ClCompile Include="hashtable.cpp" />
@@ -134,15 +134,15 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fileHandler_NEW.h" />
+    <ClInclude Include="fileHandler.h" />
     <ClInclude Include="graphicHandler.h" />
     <ClInclude Include="graphicMath.h" />
     <ClInclude Include="hashtable.h" />
     <ClInclude Include="licenseChecker.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shaders\fragmentShader.txt" />
-    <Text Include="shaders\vertexShader.txt" />
+    <None Include="shaders\fragmentShader.frag" />
+    <None Include="shaders\vertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

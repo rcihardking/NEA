@@ -13,75 +13,9 @@
 
 #include "graphicHandler.h"
 #include "graphicMath.h"
-#include "fileHandler_NEW.h"
+#include "fileHandler.h"
 #include "hashtable.h"
 #include "licenseChecker.h"
-/*
-void movementKey(vec3 moveAmount) {
-    vec3 camPos = currentScene->currentCamera.getPosition();
-    vec3 newPos = moveAmount + camPos;
-    currentScene->currentCamera.move(newPos);
-}
-*/
-
-/*
-void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-        switch (key) {
-        case GLFW_KEY_W:
-        {
-            vec3 moveAmount = { 0.0f, 0.0f, -1.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_S:
-        {
-            vec3 moveAmount = { 0.0f, 0.0f, 1.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_A:
-        {
-            vec3 moveAmount = { -1.0f, 0.0f, 0.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_D:
-        {
-            vec3 moveAmount = { 1.0f, 0.0f, 0.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_E:
-        {
-            vec3 moveAmount = { 0.0f, 1.0f, 0.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_Q:
-        {
-            vec3 moveAmount = { 0.0f, -1.0f, 0.0f };
-            movementKey(moveAmount);
-        }
-            break;
-        case GLFW_KEY_TAB:
-            int polygonMode[2];
-            glGetIntegerv(GL_POLYGON_MODE, polygonMode);
-            if (polygonMode[1] == GL_LINE) {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            }
-            else {
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            }
-
-            break;
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, 1);
-            break;
-        }
-    }
-}
-*/
 
 void error_callback(int error, const char* desc) {
     std::cout << error << " " << desc << std::endl;
@@ -126,6 +60,7 @@ int main()
     hashtable<readMeshPtr, 10> default_meshFormatLoaders = {
         {"obj", &readOBJ_old}
     };
+    
     formatLoaders formats;
     formats.imgFormats = &default_imageFormatLoaders;
     formats.meshFormats = &default_meshFormatLoaders;
@@ -139,20 +74,24 @@ int main()
     shader newShader = newFileloader.shaderLoader({ "shaders/fragmentShader.frag", "shaders/vertexShader.vert" });
 
     camera newCam;
-    newCam.changePerspective(toRad(70.0f), 1.0f, 30.0f, 1.0f);
+    newCam.changePerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
 
-    scene myscene(window);
-    myscene.currentCamera = newCam;
+    light newLight;
+    newLight.intensity = 10.0f;
+    newLight.move({ 5.0f, 5.0f, 5.0f });
 
-    instance instance1("instance1", &myscene, &monkey, &box, &newShader);
+    scene newscene(window);
+    newscene.currentCamera = newCam;
+    newscene.lights.push_back(newLight);
+
+    instance instance1("instance1", &newscene, &monkey, &box, &newShader);
     instance1.drawImplementation = &drawImplementation;
     instance1.move({ 0.0f, 0.0f, -6.5f });
-    instance1.rotate({ 0.0f, 0.0f, 0.0f });
     
     while (!glfwWindowShouldClose(window)) {
-        unsigned int queries[2];
-        glGenQueries(2, queries);
-        glQueryCounter(queries[0], GL_TIMESTAMP);
+        //unsigned int queries[2];
+        //glGenQueries(2, queries);
+        //glQueryCounter(queries[0], GL_TIMESTAMP);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
@@ -160,9 +99,9 @@ int main()
         
         instance1.draw();
 
-        //instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
+        instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f /*static_cast<float>(glfwGetTime())*/});
 
-        //newScene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
+        //newscene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
 
         //instance2.draw();
         //instance2.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
@@ -170,11 +109,11 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        glQueryCounter(queries[1], GL_TIMESTAMP);
+        //glQueryCounter(queries[1], GL_TIMESTAMP);
 
-        unsigned long long start, stop;
-        glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
-        glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
+        //unsigned long long start, stop;
+        //glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
+        //glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
 
         //std::cout << (stop - start) / 1000000 << "\n";
     }

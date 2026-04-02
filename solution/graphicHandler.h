@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "graphicMath.h"
-#include "fileHandler_NEW.h"
+#include "fileHandler.h"
 
 #include <glad/glad.h>
 #include <libpng/png.h>
@@ -65,6 +65,11 @@ private:
     mat4 perspective;
 };
 
+class light : public location {
+public:
+    float intensity = 1.0f;
+};
+
 class scene {
 public:
     scene(GLFWwindow* renderingWindow = nullptr) : window{ renderingWindow } {};
@@ -73,6 +78,8 @@ public:
     };
 
     camera currentCamera;
+    std::vector<light> lights;
+    float ambientConstant = 0.6f;
 private:
     GLFWwindow* window;
 };
@@ -85,23 +92,28 @@ private:
     texture* myTexture;
     shader* myShader;
 
+    float shinyness;
+    float reflectivity;
+
 protected:
     instance* parent = nullptr;
     std::vector<instance*> children;
 
 public:
-    inline instance(std::string name, scene* scene, mesh* model, texture* img, shader* shad) {
+    inline instance(std::string name, scene* scene, mesh* model, texture* img, shader* shad, float shiny = 2.0f, float reflect = 1.0f) {
         identifier = name;
         myScene = scene;
         myMesh = model;
         myTexture = img;
         myShader = shad;
+        shinyness = shiny;
+        reflectivity = reflect;
     };
 
     instance* search(std::string name);
 
     void draw();
-    void (*drawImplementation)(instance*, scene*, mesh*, texture*, shader*) = nullptr;
+    void (*drawImplementation)(instance*, scene*, mesh*, texture*, shader*, float, float) = nullptr;
 
     inline const std::vector<instance*> getChildren() { return static_cast<const std::vector<instance*>>(children); };
     inline instance* getParent() { return parent; };
@@ -115,4 +127,4 @@ public:
     void resize(float factor) override;
 };
 
-void drawImplementation(instance* self, scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader);
+void drawImplementation(instance* self, scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader, float shinyness, float reflectivity);

@@ -15,7 +15,7 @@ instance* instance::search(std::string name) {
 	return nullptr;
 }
 
-void drawImplementation(instance* self,scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader) {
+void drawImplementation(instance* self,scene* myScene, mesh* myMesh, texture* myTexture, shader* myShader, float shiny, float reflect) {
 	if (myMesh->vbo != 0) {
 		glUseProgram(myShader->shaderID);
 
@@ -25,15 +25,19 @@ void drawImplementation(instance* self,scene* myScene, mesh* myMesh, texture* my
 		glBindVertexArray(myMesh->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
 
-		static const int lightPos = glGetUniformLocation(myShader->shaderID, "lightPosition");
+		static const int lightPositions = glGetUniformLocation(myShader->shaderID, "lightPositions");
+		static const int lightIntensities = glGetUniformLocation(myShader->shaderID, "lightIntensities");
+		static const int cameraPos = glGetUniformLocation(myShader->shaderID, "cameraPosition");
 		static const int trans = glGetUniformLocation(myShader->shaderID, "trans");
 		static const int cam = glGetUniformLocation(myShader->shaderID, "cam");
 		static const int proj = glGetUniformLocation(myShader->shaderID, "proj");
 		mat4 transformation = self->getTransformation();
 		mat4 camera = myScene->currentCamera.getTransformation();
 
-		float lightPosition[3] = { 5.0f, 5.0f, 5.0f };
-		glUniform3fv(lightPos, 1, lightPosition);
+
+		glUniform3fv(lightPositions, 1, myScene->lights[0].getPosition().array);
+		glUniform1f(lightIntensities, myScene->lights[0].intensity);
+		glUniform3fv(cameraPos, 1, myScene->currentCamera.getPosition().array);
 		glUniformMatrix4fv(trans, 1, true, transformation.array);
 		glUniformMatrix4fv(cam, 1, true, camera.array);
 		glUniformMatrix4fv(proj, 1, true, myScene->currentCamera.getPerspective().array);
@@ -55,7 +59,7 @@ void instance::draw() {
 		}
 	}
 
-	drawImplementation(this, myScene, myMesh, myTexture, myShader);
+	drawImplementation(this, myScene, myMesh, myTexture, myShader, shinyness, reflectivity);
 
 	if (children.size() == 0) {
 		return;
@@ -183,7 +187,7 @@ void camera::resize(float factor) {
 }
 
 void camera::changePerspective(float fov, float aspect, float n, float f) {
-	perspective = graphics::createPerspective(fov, aspect, f, n);
+	perspective = graphics::createPerspective(fov, aspect, n, f);
 }
 
 

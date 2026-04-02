@@ -6,20 +6,35 @@ in vec3 normal;
 out vec3 FragColor;
 
 uniform sampler2D image;
-uniform vec3 lightPosition;
+uniform int lights = 1;
+uniform vec3 lightPositions;
+uniform float lightIntensities;
+uniform vec3 cameraPosition;
+uniform float reflectivity = 1.0f;
+uniform float shinyness = 32.0f;
   
 void main()
 {
-    //FragColor = vec3(0.5f, 0.5f, 0.5f);
-    vec3 ambient = 0.6 * vec3(1.0f, 1.0f, 1.0f);
+    float ambient = 0.6;
+    vec3 cameraDirection = cameraPosition - position;
 
-    vec3 unitNormal = normalize(normal);
-    vec3 lightDirection = lightPosition - position;
-    float lightDistance = length(lightDirection);
-    float impact = max(dot(unitNormal, normalize(lightDirection)), 0.0);
-    vec3 diffuse = impact * (10/lightDistance) * vec3(1.0f, 1.0f, 1.0f);
+    vec3 intensity = ambient * vec3(1.0f, 1.0f, 1.0f);
 
-    FragColor = (ambient + diffuse) * texture(image, UV).rgb;
+    for (int i = 0; i < lights; ++i) {
+        vec3 lightDirection = lightPositions[i] - position;
+        float lightDistance = length(lightDirection);
+
+        float costheta = max( dot( normalize(normal), normalize(lightDirection) ), 0.0f );
+        float diffuse = reflectivity * lightIntensities * costheta;
+
+        float cosphi = max( dot( normalize(lightDirection), normalize(cameraDirection) ), 0.0f );
+        float specular = reflectivity * lightIntensities * pow(cosphi, shinyness);
+
+        float lightsIntensity = (diffuse + specular) * (10 / pow(lightDistance, 2));
+        intensity = intensity + (lightsIntensity * vec3(1.0f, 1.0f, 1.0f));
+    }
+
+    FragColor = intensity * texture(image, UV).rgb;
 }
 
 

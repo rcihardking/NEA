@@ -1,6 +1,5 @@
-#include "fileHandler_NEW.h"
+#include "fileHandler.h"
 
-/*
 texture::~texture() {
 	if (textureID != NULL) {
 		glDeleteTextures(1, &textureID);
@@ -20,7 +19,7 @@ shader::~shader() {
 	if (shaderID != NULL) {
 		glDeleteProgram(shaderID);
 	}
-}*/
+}
 
 // helper function to get the file extension from a file path
 // e.g., returns png for abc.png
@@ -201,7 +200,6 @@ std::vector<float> readOBJ(std::string filepath) {
 			}
 		}
 
-		std::cout << vertices.size() << "\n";
 		return vertices;
 	};
 };
@@ -287,7 +285,6 @@ std::vector<float> readOBJ_old(std::string filepath) {
 		}
 	}
 
-	std::cout << verticies.size() << "\n";
 	return verticies;
 }
 
@@ -420,7 +417,6 @@ shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
 
 	shader newShader;
 	newShader.shaderID = glCreateProgram();
-	std::cout << "\n" << newShader.shaderID << "\n";
 
 	for (auto it = filepaths.begin(); it != filepaths.end(); ++it) {
 		std::string fpExt = getExt(*it);
@@ -434,7 +430,6 @@ shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
 		}
 
 		unsigned int shaderPart = compileShader(*it, types[fpExt]);	//compile the shader
-		std::cout << types[fpExt] << "\n";
 		if (shaderPart == 0) {	//an error occured if the returned value is zero
 			continue;
 		}
