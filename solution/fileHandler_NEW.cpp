@@ -287,6 +287,7 @@ std::vector<float> readOBJ_old(std::string filepath) {
 		}
 	}
 
+	std::cout << verticies.size() << "\n";
 	return verticies;
 }
 
@@ -334,9 +335,8 @@ texture fileLoader::imageLoader(std::string filepath) {
 
 mesh fileLoader::meshLoader(std::string filepath) {
 	mesh newMesh;
-	
-	unsigned int newvao;
-	unsigned int newvbo;
+	newMesh.vao = 0;
+	newMesh.vbo = 0;
 	std::string fileExt = getExt(filepath);
 	hashobject<readMeshPtr>* meshFormat = formats.meshFormats->find(fileExt);
 	if (meshFormat == nullptr) {
@@ -349,11 +349,11 @@ mesh fileLoader::meshLoader(std::string filepath) {
 		return newMesh; //failed to read obj file
 	}
 
-	glGenVertexArrays(1, &newvao);
-	glBindVertexArray(newvao);
+	glGenVertexArrays(1, &newMesh.vao);
+	glBindVertexArray(newMesh.vao);
 
-	glGenBuffers(1, &newvbo);
-	glBindBuffer(GL_ARRAY_BUFFER, newvbo);
+	glGenBuffers(1, &newMesh.vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
 
@@ -370,8 +370,6 @@ mesh fileLoader::meshLoader(std::string filepath) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	newMesh.size = vertices.size();
-	newMesh.vbo = newvbo;
-	newMesh.vao = newvao;
 	return newMesh;
 }
 

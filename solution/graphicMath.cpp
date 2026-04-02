@@ -69,12 +69,12 @@ mat4 graphics::createEulerRotation(float rot[3]) {
 	return rotY * (rotX * rotZ);
 }
 
-mat4 graphics::createPerspective(float fov, float aspect, float ne, float fa) {
+mat4 graphics::createPerspective(float fov, float aspect, float near, float far) {
 	float f = 1.0f / tanf(fov / 2.0f);
 	matrix<4, 4> persp = {
 		f / aspect, 0.0f, 0.0f, 0.0f,
 		0.0f, f, 0.0f, 0.0f,
-		0.0f, 0.0f, -(fa + ne) / (fa - ne), -(2 * fa * ne) / (fa - ne),
+		0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
 		0.0f, 0.0f, -1.0f, 0.0f
 	};
 	return persp;
