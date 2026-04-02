@@ -28,7 +28,7 @@ struct image {
 
 struct texture {
 	unsigned int textureID;
-	~texture();	//deconstructor for automatic cleanup
+	//~texture();	//deconstructor for automatic cleanup
 };
 
 //meshes
@@ -36,13 +36,13 @@ struct mesh {
 	unsigned int vbo;
 	unsigned int vao;
 	unsigned int size;
-	~mesh();	//deconstructor for automatic cleanup
+	//~mesh();	//deconstructor for automatic cleanup
 };
 
 //shaders
 struct shader {
 	unsigned int shaderID;
-	~shader();	//deconstructor for automatic cleanup
+	//~shader();	//deconstructor for automatic cleanup
 };
 
 

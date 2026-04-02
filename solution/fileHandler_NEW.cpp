@@ -1,6 +1,6 @@
 #include "fileHandler_NEW.h"
 
-
+/*
 texture::~texture() {
 	if (textureID != NULL) {
 		glDeleteTextures(1, &textureID);
@@ -20,8 +20,7 @@ shader::~shader() {
 	if (shaderID != NULL) {
 		glDeleteProgram(shaderID);
 	}
-}
-
+}*/
 
 // helper function to get the file extension from a file path
 // e.g., returns png for abc.png
