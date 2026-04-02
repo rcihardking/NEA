@@ -3,6 +3,10 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <initializer_list>
+#include <utility>
+#include <optional>
+
 
 /*
 probably just have this implemented for characters only
@@ -18,74 +22,72 @@ struct hashobject {
 	hashobject* parent = nullptr;
 };
 
-template<typename valType>
+template<typename valType, int s>
 class hashtable {
 private:
-	std::vector<hashobject<valType>*> table = { 0 };
-	int size;
+	std::vector< hashobject<valType>* > table;
+	const int size = s;
 public:
-	inline hashtable() {};
-	inline hashtable(int s) : size{ s } {
-		table.resize(size);
-	};
-	inline ~hashtable() { // deletes all hashtable heap variables
-		for (int i = 0; i < table.size(); ++i) {
-			hashobject<valType>* it = table[i];
-			if (it != nullptr) {
-				for (int i = 0; i < 3; ++i) {
-					if (it->child == nullptr) {
-						break;
-					}
-					it = it->child;
-				}
-				for (int i = 0; i < 3; ++i) {
-					if (it->parent == nullptr) {
-						delete it;
-						break;
-					}
-					it = it->parent;
-					delete it->child;
-				}
-			}
+	inline hashtable() { table.resize(s); };
+	inline hashtable(std::initializer_list< std::pair<std::string, valType> > newTable) {
+		table.resize(s);
+		if (newTable.size() == s) {
+			throw "input value is not the same size as specified size";
 		}
-	}
-	inline int resize(int s) { // only use when empty
-		size = s;
-		table.resize(size);
-	}
-	inline int add(std::string key, valType value) {
-		hashobject<valType>* newobject = new hashobject<valType>;
-		newobject->key = key;
-		newobject->value = value;
-		int keyHash = hash(key, size);
+		for (auto it = newTable.begin(); it != newTable.end(); ++it) {
+			hashobject<valType>* newhash = new hashobject<valType>;
 
-		if (table[keyHash] == nullptr) {
-			table[keyHash] = newobject;
-			return 0;
-		}
-		hashobject<valType>* it = table[keyHash];
-		for (int i = 0; i < 3; ++i) { // maximum of 3 collisions
-			if (it->child == nullptr) {
-				it->child = newobject;
-				newobject->parent = it;
-				return 1;
+			newhash->key = it->first;
+			newhash->value = it->second;
+			int strhash = hash(it->first, s);
+			if (table[strhash] == nullptr) {
+				table[strhash] = newhash;
 			}
-			it = newobject->child;
+			else {
+				hashobject<valType>* parent = nullptr;
+				hashobject<valType>* child = table[strhash];
+				while (child != nullptr) {
+					parent = child;
+					child = parent->child;
+				}
+				newhash->parent = parent;
+				parent->child = newhash;
+			}
+
 		}
-		return 2; // failed to add to hashlist due to too many collisions
 	};
-	inline hashobject<valType>* get(std::string key) {
-		int keyHash = hash(key, size);
-		if (table[keyHash] == nullptr) {
-			return nullptr;
+
+	inline int add(std::pair<std::string, valType> newPair) {
+		hashobject<valType>* newhash = new hashobject<valType>;
+
+		newhash->key = newPair.first;
+		newhash->value = newPair.second;
+		int strhash = hash(newPair.first, s);
+		if (table[strhash] == nullptr) {
+			table[strhash] = newhash;
 		}
-		hashobject<valType>* it = table[keyHash];
-		for (int i = 0; i < 3; ++i) {
+		else {
+			hashobject<valType>* parent = nullptr;
+			hashobject<valType>* child = table[strhash];
+			while (child != nullptr) {
+				parent = child;
+				child = parent->child;
+			}
+			newhash->parent = parent;
+			parent->child = newhash;
+		}
+	};
+
+	inline hashobject<valType>* find(std::string key) {
+		int strhash = hash(key, s);
+		hashobject<valType>* it = table[strhash];
+		while (it != nullptr) {
 			if (it->key == key) {
 				return it;
 			}
 			it = it->child;
 		}
-		return nullptr; // past collision limit
+		return nullptr;
 	}
 };
+
