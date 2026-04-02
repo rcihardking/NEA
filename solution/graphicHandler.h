@@ -90,17 +90,6 @@ namespace graphics {
         std::vector<texture> textures;
     };
 
-    /*
-    class shader {
-    public:
-        GLuint ID = glCreateProgram();
-
-        shader(std::string vertexFilepath, std::string fragmentFilepath);
-        ~shader();
-    }; 
-    */
-    // change to use function pointers instead
-
     class instance : public location {
     private:
         std::string identifier;
@@ -128,7 +117,7 @@ namespace graphics {
 
         // need to move back to private
         scene* myScene = nullptr;
-        shader myShader;
+        shader* myShader;
 
         int meshIndex;
         int textureIndex;

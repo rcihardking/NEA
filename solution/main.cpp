@@ -117,8 +117,19 @@ int main()
     std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com");
     GLFWwindow* window = initGL();
 
+    hashtable<readImgPtr, 10> default_imageFormatLoaders = {
+        {"png", &readPNG}
+    };
+    hashtable<readMeshPtr, 10> default_meshFormatLoaders = {
+        {"obj", &readOBJ_old}
+    };
     formatLoaders formats;
-    fileLoader newLoader();
+    formats.imgFormats = &default_imageFormatLoaders;
+    formats.meshFormats = &default_meshFormatLoaders;
+
+    fileLoader newFileloader(formats);
+
+    shader newShader = newFileloader.shaderLoader({ "shaders/vertex.vert", "shaders/fragment.frag" });
 
     graphics::scene newScene;
     currentScene = &newScene;
