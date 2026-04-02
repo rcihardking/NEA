@@ -1,11 +1,12 @@
 #include "fileHandler_NEW.h"
 
-
+/*
 texture::~texture() {
-	if (textureID != NULL) {
-		glDeleteTextures(1, &textureID);
+	if (img != NULL) {
+		glDeleteTextures(1, &img);
 	}
 }
+*/
 
 mesh::~mesh() {
 	if (vbo != NULL) {
@@ -294,7 +295,7 @@ std::vector<float> readOBJ_old(std::string filepath) {
 
 texture fileLoader::imageLoader(std::string filepath) {
 	texture newTexture;
-	newTexture.textureID = 0;
+	newTexture.img = 0;
 
 	std::string fileExt = getExt(filepath);
 	hashobject<readImgPtr>* imgFormat = formats.imgFormats->find(fileExt);
@@ -310,8 +311,8 @@ texture fileLoader::imageLoader(std::string filepath) {
 	}
 
 	//create opengl texture id
-	glGenTextures(1, &newTexture.textureID);
-	glBindTexture(GL_TEXTURE_2D, newTexture.textureID);
+	glGenTextures(1, &newTexture.img);
+	glBindTexture(GL_TEXTURE_2D, newTexture.img);
 
 	//basic texture setup
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

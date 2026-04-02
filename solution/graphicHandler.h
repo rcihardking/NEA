@@ -4,6 +4,7 @@
 
 #include "graphicMath.h"
 #include "fileHandler.h"
+#include "fileHandler_NEW.h"
 
 #include <glad/glad.h>
 #include <libpng/png.h>
@@ -49,10 +50,14 @@ namespace graphics {
         mat4 getTransformation();
     };
 
+
+    /*
     struct texture {
         unsigned int img = 0;
     };
+    */
 
+    /*
     struct mesh {
         unsigned int vao = 0;
         unsigned int vbo = 0;
@@ -60,6 +65,7 @@ namespace graphics {
         int offset = 0;
         int size = 0;
     };
+    */
 
     class camera : public location {
     public:
@@ -80,8 +86,8 @@ namespace graphics {
         mat4 perspective = graphics::createPerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
         camera currentCamera;
 
-        std::vector<graphics::mesh> meshes;
-        std::vector<graphics::texture> textures;
+        std::vector<mesh> meshes;
+        std::vector<texture> textures;
     };
 
     class shader {

@@ -56,7 +56,7 @@ graphics::shader::~shader() {
 }
 
 int graphics::scene::loadMesh(std::string meshFilepath, GLuint vao) {
-	graphics::mesh newMesh;
+	mesh newMesh;
 	std::vector<float> verticies = file::readMesh(meshFilepath);
 
 	GLuint vbo;
@@ -96,7 +96,7 @@ int graphics::scene::loadImage(std::string imageFilepath) {
 		assert(false);
 	}
 
-	graphics::texture newTexture;
+	texture newTexture;
 
 	glGenTextures(1, &newTexture.img);
 	glBindTexture(GL_TEXTURE_2D, newTexture.img);
@@ -137,10 +137,10 @@ graphics::instance* graphics::instance::search(std::string name) {
 void drawImplementation(graphics::instance* self) {
 	if (self->meshIndex != 0) {
 		glUseProgram(self->myShader->ID);
-		graphics::mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
+		mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
 
 		if (self->textureIndex != 0) {
-			graphics::texture* myTexture = &self->myScene->textures[self->textureIndex - 1];
+			texture* myTexture = &self->myScene->textures[self->textureIndex - 1];
 			glBindTexture(GL_TEXTURE_2D, myTexture->img);
 		}
 		glBindVertexArray(myMesh->vao);

@@ -27,8 +27,8 @@ struct image {
 };
 
 struct texture {
-	unsigned int textureID;
-	~texture();	//deconstructor for automatic cleanup
+	GLuint img = 0;
+	//~texture();	//deconstructor for automatic cleanup
 };
 
 //meshes
