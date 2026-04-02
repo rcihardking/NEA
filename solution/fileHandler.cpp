@@ -1,5 +1,6 @@
 #include "fileHandler.h"
 
+//deconstructors so opengl buffers are destroyed cleanly
 texture::~texture() {
 	if (textureID != NULL) {
 		glDeleteTextures(1, &textureID);
@@ -111,7 +112,7 @@ image readPNG(std::string filepath) {
 	return newImage;
 }
 
-template<int size>
+template<int size>	//ALSO UNUSED REMOVE PLS
 static std::array<float, size> getOBJData(std::string line, std::regex re, bool* flag) {
 	std::array<float, size> datapart = { 0 };
 	std::smatch matchObj;
@@ -128,7 +129,7 @@ static std::array<float, size> getOBJData(std::string line, std::regex re, bool*
 	return datapart;
 }
 
-std::vector<float> readOBJ(std::string filepath) {
+std::vector<float> readOBJ(std::string filepath) {	//CURRENTLY UNUSED REMOVE PLS
 	std::vector<float> vertices;
 	std::ifstream text(filepath);
 	if (!text.is_open()) {
@@ -209,12 +210,12 @@ static void objRegex(std::string line, std::regex reg, std::vector<float>* vec, 
 	std::smatch matchObj;
 	std::regex_match(line, matchObj, reg);
 
-	if (matchObj.size() < 2) {
+	if (matchObj.size() < 2) {	//throw if no value is returned from the regex
 		throw "something went wrong";
 	}
 
 	for (int i = 0; i < len; ++i) {
-		vec->push_back(std::stof(matchObj[i + 1].str()));
+		vec->push_back(std::stof(matchObj[i + 1].str()));	//put the values extracted from the regex into the passed vector
 	}
 }
 
@@ -225,16 +226,18 @@ std::vector<float> readOBJ_old(std::string filepath) {
 	std::vector<float> vertexTex;
 
 	std::ifstream obj(filepath);
-	if (!obj.is_open()) {
+	if (!obj.is_open()) {	//check if the file exists
 		return verticies;
 	}
 
+	//defining regular expressions
 	static const std::regex v("v (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
 	static const std::regex vn("vn (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
 	static const std::regex vt("vt (-?[0-9]+.[0-9]*) (-?[0-9]+.[0-9]*)");
 	static const std::regex f("f ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*) ([0-9]*/[0-9]*/[0-9]*)");
 	static const std::regex index("([0-9]*)/([0-9]*)/([0-9]*)");
 
+	//for loop for the various datatypes of obj file
 	for (std::string line; std::getline(obj, line); ) {
 		switch (line.c_str()[0] << sizeof(char) * 8 | line.c_str()[1]) {
 		case * "v" << sizeof(char) * 8 | *" ": // 30240
@@ -257,7 +260,7 @@ std::vector<float> readOBJ_old(std::string filepath) {
 			std::regex_match(line, matchObj, f);
 
 			if (matchObj.size() < 2) {
-				throw "malformed obj file"; // malformed obj file
+				throw "malformed obj file";
 			}
 
 			std::vector<std::string> str_f;
@@ -265,7 +268,7 @@ std::vector<float> readOBJ_old(std::string filepath) {
 				str_f.push_back(matchObj[i + 1].str());
 			}
 
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++) {	//extract data from indicies and put into vertices
 				std::smatch faceIndices;
 				std::regex_match(str_f[i], faceIndices, index);
 
@@ -291,10 +294,9 @@ std::vector<float> readOBJ_old(std::string filepath) {
 
 texture fileLoader::imageLoader(std::string filepath) {
 	texture newTexture;
-	newTexture.textureID = 0;
-
 	std::string fileExt = getExt(filepath);
-	hashobject<readImgPtr>* imgFormat = formats.imgFormats->find(fileExt);
+
+	hashobject<readImgPtr>* imgFormat = formats.imgFormats->find(fileExt);	//get function from hashtable
 	if (imgFormat == nullptr) {
 		std::cout << "file format not supported\n";
 		return newTexture;
@@ -332,28 +334,28 @@ texture fileLoader::imageLoader(std::string filepath) {
 
 mesh fileLoader::meshLoader(std::string filepath) {
 	mesh newMesh;
-	newMesh.vao = 0;
-	newMesh.vbo = 0;
 	std::string fileExt = getExt(filepath);
-	hashobject<readMeshPtr>* meshFormat = formats.meshFormats->find(fileExt);
+	hashobject<readMeshPtr>* meshFormat = formats.meshFormats->find(fileExt);	//get function from hashtable
 	if (meshFormat == nullptr) {
 		std::cout << "unsupported file format\n";
 		return newMesh;
 	}
-	std::vector<float> vertices = meshFormat->value(filepath);
+	std::vector<float> vertices = meshFormat->value(filepath);	//get the verticies from the function
 
 	if (vertices.size() == 1) {
 		return newMesh; //failed to read obj file
 	}
 
+	//create vao and vbo
 	glGenVertexArrays(1, &newMesh.vao);
 	glBindVertexArray(newMesh.vao);
-
 	glGenBuffers(1, &newMesh.vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);	//put data into the vbo
 
+	//create vertex array object
+	//tells opengl what values mean depending on where they are in the vbo
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0); // positions
 	glEnableVertexAttribArray(0);
 
@@ -363,6 +365,7 @@ mesh fileLoader::meshLoader(std::string filepath) {
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float))); // normals
 	glEnableVertexAttribArray(2);
 
+	//unbind vao and vbo
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -439,7 +442,7 @@ shader fileLoader::shaderLoader(std::initializer_list<std::string> filepaths) {
 	}
 
 	glLinkProgram(newShader.shaderID);
-	for (auto it = shaderParts.begin(); it != shaderParts.end(); ++it) {	//check if any shader part was loaded
+	for (auto it = shaderParts.begin(); it != shaderParts.end(); ++it) {	//delete all useless shaders
 		if (it->second) {
 			glDeleteShader(it->second);
 		}

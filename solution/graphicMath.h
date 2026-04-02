@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <cmath>
 
-#define PI 3.14159265359
+#define PI 3.14159265359	//define constant
 #define TORADFACTOR 0.01745329251
 
 template <int h, int w>
@@ -16,22 +16,24 @@ struct matrix {
 	inline matrix() {};
 
 	inline matrix(std::initializer_list<float> init) {
-		if (init.size() <= h * w) {
-			std::move(init.begin(), init.end(), array); // dont know if this is undefined behaviour
+		if (init.size() <= h * w) {	//check if passed array is larger than the matrix
+			std::move(init.begin(), init.end(), array); // move passed matrix data into the matrices storage
 		}
-		else { // only here to stop buffer overflows
+		else { //if it is stop buffer overflow by only reading values in matrix range
 			std::cout << "an initalizer list provided is larger than matrix size" << "\n";
 			std::move(init.begin(), init.begin() + h * w, array);
 		}
 	};
 	inline matrix(float init[h*w]) {
-		std::move(init, init + h * w, array);
+		std::move(init, init + h * w, array);	//if c style array passed move all values in it to matrices array
 	};
 
 	template<class T>
 	inline auto operator* (T other) {
 		static_assert(width == other.height, "attempted to multiply 2 incompatable matrices");
-		// compiler error avoids a runtime crash due to a programmer error
+		//compiler error avoids a runtime crash due to a programmer error
+
+		//skip cases to avoid unnecessary computation
 		if (this->identity == true) {
 			return other;
 		}
@@ -41,7 +43,7 @@ struct matrix {
 
 		matrix<h, other.width> newMatrix;
 
-		for (int k = 0; k < h; ++k) {
+		for (int k = 0; k < h; ++k) {	//multiply matrices together using algorithm
 			for (int j = 0; j < width; ++j) {
 				for (int i = 0; i < other.width; ++i) {
 					newMatrix.array[i + k * other.width] += array[j + k * width] * other.array[i + j * other.width];
@@ -59,17 +61,19 @@ struct matrix {
 		matrix<h, w> newMatrix;
 
 		for (int i = 0; i < h * w; ++i) {
-			newMatrix.array[i] = this->array[i] + other.array[i];
+			newMatrix.array[i] = this->array[i] + other.array[i];	//iterate through matrix and add together all values
 		}
 
 		return newMatrix;
 	}
 };
 
+//definitions for simpler use in code
 typedef matrix<4, 4> mat4;
 typedef matrix<4, 1> vec4;
 typedef matrix<3, 1> vec3;
 
+//quick way to get identity matrix
 inline mat4 iden4() {
 	mat4 newMatrix = { 
 		1.0f, 0.0f, 0.0f, 0.0f,

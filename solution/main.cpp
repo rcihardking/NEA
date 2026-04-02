@@ -17,43 +17,13 @@
 #include "hashtable.h"
 #include "licenseChecker.h"
 
-void error_callback(int error, const char* desc) {
-    std::cout << error << " " << desc << std::endl;
-}
-
-GLFWwindow* initGL() {
-    if (!glfwInit()) {
-        return nullptr;
-    }
-
-    glfwSetErrorCallback(error_callback);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Test Window", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return nullptr;
-    }
-
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGL()) {
-        glfwTerminate();
-        return nullptr;
-    }
-    //glfwSetKeyCallback(window, keyCallback);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-
-    return window;
-}
-
 int main()
 {
-    std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com") << "\n";
+    //licenseProcess();   //license key checking process
 
-    GLFWwindow* window = initGL();
+    scene newscene;
 
+    //create hashmap pointing to read functions
     hashtable<readImgPtr, 10> default_imageFormatLoaders = {
         {"png", &readPNG}
     };
@@ -61,18 +31,23 @@ int main()
         {"obj", &readOBJ_old}
     };
     
-    formatLoaders formats;
+    formatLoaders formats; 
     formats.imgFormats = &default_imageFormatLoaders;
     formats.meshFormats = &default_meshFormatLoaders;
 
+    //create format loader object
     fileLoader newFileloader(formats);
+
+    //load meshes and textures
     mesh monkey = newFileloader.meshLoader("meshes/monkey.obj");
     mesh square = newFileloader.meshLoader("meshes/bettercube.obj");
     texture box = newFileloader.imageLoader("textures/box.png");
     texture checkers = newFileloader.imageLoader("textures/checkermap_resized.png");
 
+    //load in shader
     shader newShader = newFileloader.shaderLoader({ "shaders/fragmentShader.frag", "shaders/vertexShader.vert" });
 
+    //create necessary objects for rendering
     camera newCam;
     newCam.changePerspective(toRad(70.0f), 1.0f, 1.0f, 30.0f);
 
@@ -80,7 +55,6 @@ int main()
     newLight.intensity = 10.0f;
     newLight.move({ 5.0f, 5.0f, 5.0f });
 
-    scene newscene(window);
     newscene.currentCamera = newCam;
     newscene.lights.push_back(newLight);
 
@@ -88,11 +62,7 @@ int main()
     instance1.drawImplementation = &drawImplementation;
     instance1.move({ 0.0f, 0.0f, -6.5f });
     
-    while (!glfwWindowShouldClose(window)) {
-        //unsigned int queries[2];
-        //glGenQueries(2, queries);
-        //glQueryCounter(queries[0], GL_TIMESTAMP);
-
+    while (!glfwWindowShouldClose(newscene.window)) {    //render loop
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 1.0f);
 
@@ -101,21 +71,9 @@ int main()
 
         instance1.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f /*static_cast<float>(glfwGetTime())*/});
 
-        //newscene.currentCamera.move({ static_cast<float>(sin(glfwGetTime())), 0.0f, 0.0f });
 
-        //instance2.draw();
-        //instance2.rotate({ 0.0f, static_cast<float>(glfwGetTime()), 0.0f });
-
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(newscene.window);
         glfwPollEvents();
-
-        //glQueryCounter(queries[1], GL_TIMESTAMP);
-
-        //unsigned long long start, stop;
-        //glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
-        //glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
-
-        //std::cout << (stop - start) / 1000000 << "\n";
     }
 
     glfwTerminate();

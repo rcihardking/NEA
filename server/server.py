@@ -7,7 +7,7 @@ def licenseHandler(license : str, email : str): # cross references license again
     licenseRe = "[A-Z][A-Z][A-Z][A-Z]-[A-Z][A-Z][A-Z][A-Z]-[A-Z][A-Z][A-Z][A-Z]-[A-Z][A-Z][A-Z][A-Z]"
     emailRe = "([a-zA-Z]*|[0-9]*)@([a-zA-Z]*|[0-9]*).com"
 
-    if license == "test" and email == "mrbfdi": # debug statement to bypass license checker, REMOVE LATER!!
+    if license == "test" and email == "test": # debug statement to bypass license checker, REMOVE LATER!!
         return 200
 
     # sanatize inputs        

@@ -1,5 +1,9 @@
 #include "graphicMath.h"
 
+/*
+all functions here return their respective transformations
+there is no simpler way to do this so its manually done
+*/
 
 mat4 graphics::createEulerRotation(float x, float y, float z) {
 	if (x == 0.0f && y == 0.0f && z == 0.0f) {
