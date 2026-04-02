@@ -136,7 +136,7 @@ graphics::instance* graphics::instance::search(std::string name) {
 
 void drawImplementation(graphics::instance* self) {
 	if (self->meshIndex != 0) {
-		glUseProgram(self->myShader->ID);
+		glUseProgram(self->myShader.ID);
 		mesh* myMesh = &self->myScene->meshes[self->meshIndex - 1];
 
 		if (self->textureIndex != 0) {
@@ -146,10 +146,10 @@ void drawImplementation(graphics::instance* self) {
 		glBindVertexArray(myMesh->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, myMesh->vbo);
 
-		static const int lightPos = glGetUniformLocation(self->myShader->ID, "lightPosition");
-		static const int trans = glGetUniformLocation(self->myShader->ID, "trans");
-		static const int cam = glGetUniformLocation(self->myShader->ID, "cam");
-		static const int proj = glGetUniformLocation(self->myShader->ID, "proj");
+		static const int lightPos = glGetUniformLocation(self->myShader.ID, "lightPosition");
+		static const int trans = glGetUniformLocation(self->myShader.ID, "trans");
+		static const int cam = glGetUniformLocation(self->myShader.ID, "cam");
+		static const int proj = glGetUniformLocation(self->myShader.ID, "proj");
 		mat4 transformation = self->getTransformation();
 		mat4 camera = self->myScene->currentCamera.getTransformation();
 

@@ -27,8 +27,7 @@ struct image {
 };
 
 struct texture {
-	GLuint img = 0;
-	//~texture();	//deconstructor for automatic cleanup
+	unsigned int img;
 };
 
 //meshes
@@ -36,13 +35,11 @@ struct mesh {
 	unsigned int vbo;
 	unsigned int vao;
 	unsigned int size;
-	~mesh();	//deconstructor for automatic cleanup
 };
 
 //shaders
 struct shader {
-	unsigned int shaderID;
-	~shader();	//deconstructor for automatic cleanup
+	unsigned int ID;
 };
 
 

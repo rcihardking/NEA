@@ -6,7 +6,6 @@ texture::~texture() {
 		glDeleteTextures(1, &img);
 	}
 }
-*/
 
 mesh::~mesh() {
 	if (vbo != NULL) {
@@ -22,7 +21,7 @@ shader::~shader() {
 		glDeleteProgram(shaderID);
 	}
 }
-
+*/
 
 // helper function to get the file extension from a file path
 // e.g., returns png for abc.png

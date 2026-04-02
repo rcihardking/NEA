@@ -117,7 +117,9 @@ int main()
     std::cout << checkLicense("IJIF-TJCW-GTOA-MMZI", "mrbfdi@outlook.com");
     GLFWwindow* window = initGL();
 
-    graphics::shader newShader = { "shaders/vertexShader.txt", "shaders/fragmentShader.txt" };
+    formatLoaders formats;
+    fileLoader newLoader();
+
     graphics::scene newScene;
     currentScene = &newScene;
 
@@ -178,7 +180,7 @@ int main()
         glGetQueryObjectui64v(queries[0], GL_QUERY_RESULT, &start);
         glGetQueryObjectui64v(queries[1], GL_QUERY_RESULT, &stop);
 
-        std::cout << (stop - start) / 1000000 << "\n";
+        //std::cout << (stop - start) / 1000000 << "\n";
     }
 
     glfwTerminate();
